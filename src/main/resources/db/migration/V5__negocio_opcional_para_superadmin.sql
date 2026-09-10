@@ -1,0 +1,11 @@
+-- ============================================================
+-- V5: Permitir usuarios SIN negocio (para el rol SUPERADMIN)
+-- ============================================================
+-- El SUPERADMIN es un usuario de plataforma que NO pertenece a ningún
+-- negocio. Antes, la columna negocio_id era NOT NULL y bloqueaba eso.
+--
+-- Con MODIFY ... NULL la hacemos opcional. La llave foránea se conserva:
+-- si un usuario SÍ trae negocio_id, ese negocio debe existir en 'negocios'.
+-- Lo único que cambia es que ahora también se permite el valor NULL.
+-- ============================================================
+ALTER TABLE usuarios MODIFY negocio_id BIGINT NULL;

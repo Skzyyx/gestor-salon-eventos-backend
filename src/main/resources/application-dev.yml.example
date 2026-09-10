@@ -1,0 +1,33 @@
+# =============================================================================
+# application-dev.yml.example — PLANTILLA de configuración de desarrollo
+# =============================================================================
+# Cómo usar:
+#   1. Copia este archivo como: application-dev.yml (en este mismo directorio).
+#   2. Reemplaza los valores de ejemplo por las credenciales de tu base de datos (Aiven / Local).
+#   3. application-dev.yml está en .gitignore para proteger tus credenciales.
+# =============================================================================
+spring:
+  datasource:
+    url: jdbc:mysql://tu-host-de-aiven-o-mysql:puerto/defaultdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Mexico_City
+    username: ${DB_USERNAME:tu-usuario}
+    password: ${DB_PASSWORD:tu-password}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+logging:
+  level:
+    mx.gestorsalon: DEBUG
+    org.hibernate.SQL: DEBUG

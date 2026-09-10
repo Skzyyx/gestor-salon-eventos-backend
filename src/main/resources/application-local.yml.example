@@ -1,0 +1,31 @@
+# =============================================================================
+# application-local.yml.example  —  PLANTILLA de secretos de desarrollo
+# =============================================================================
+# Cómo usar:
+#   1. Copia este archivo como  application-local.yml  (mismo directorio).
+#   2. Reemplaza los valores de ejemplo por los reales.
+#      (Freddy y su compañero comparten las mismas credenciales: pídeselas.)
+#   3. Arranca el backend normalmente. El perfil 'local' ya está activo, así que
+#      Spring carga tu application-local.yml automáticamente.
+#
+# IMPORTANTE:
+#   - application-local.yml está en .gitignore: NO lo subas al repo.
+#   - Este .example SÍ se versiona, pero solo con valores ficticios.
+#   - El secreto JWT debe estar en Base64 y representar >= 256 bits (32 bytes).
+#     Puedes generar uno con:  openssl rand -base64 48
+# =============================================================================
+app:
+  jwt:
+    secret: REEMPLAZA_CON_UN_SECRETO_BASE64_DE_AL_MENOS_256_BITS
+  cloudinary:
+    cloud-name: tu-cloud-name
+    api-key: "tu-api-key"
+    api-secret: tu-api-secret
+
+# Credenciales de base de datos para desarrollo local / Aiven (opcionales si usas variables de entorno)
+spring:
+  datasource:
+    # url: jdbc:mysql://...
+    # username: avnadmin
+    password: tu_password_de_bd_o_aiven
+

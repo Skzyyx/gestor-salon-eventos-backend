@@ -1,0 +1,2 @@
+ALTER TABLE negocios
+    ADD COLUMN logo_url VARCHAR(500) NULL;

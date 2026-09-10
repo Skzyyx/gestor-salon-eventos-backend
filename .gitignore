@@ -1,0 +1,209 @@
+# =============================================================================
+# .gitignore para Proyecto Java / Spring Boot (Maven & Multi-IDE)
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Compilación y Salidas de Build (Maven / Gradle)
+# -----------------------------------------------------------------------------
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# En caso de soporte o artefactos Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# -----------------------------------------------------------------------------
+# Archivos compilados y bytecode
+# -----------------------------------------------------------------------------
+*.class
+*.war
+*.ear
+*.nar
+*.zip
+*.tar.gz
+*.rar
+
+# -----------------------------------------------------------------------------
+# Logs y Archivos Temporales de la Máquina Virtual (JVM)
+# -----------------------------------------------------------------------------
+*.log
+*.log.*
+hs_err_pid*
+replay_pid*
+*.tmp
+*.temp
+
+# -----------------------------------------------------------------------------
+# SECRETOS, VARIABLES DE ENTORNO Y CREDENCIALES (CRÍTICO)
+# -----------------------------------------------------------------------------
+
+# Archivos de configuración local de Spring Boot (secretos dev/local)
+src/main/resources/application-local.yml
+src/main/resources/application-local.yaml
+src/main/resources/application-local.properties
+src/main/resources/application-local.json
+src/main/resources/application-dev.yml
+src/main/resources/application-dev.yaml
+**/application-*.local.yml
+**/application-*.local.yaml
+**/application-*.local.properties
+**/application-secret*.yml
+**/application-secret*.yaml
+**/application-secret*.properties
+**/secrets.yml
+**/secrets.yaml
+**/secrets.properties
+**/secrets.json
+**/database.properties
+**/db.properties
+**/datasource.properties
+
+# Excepciones: Permitir SIEMPRE todas las plantillas de ejemplo (.example)
+!*.example
+!**/*.example
+!**/*.example.*
+!**/application-local.yml.example
+!**/application-dev.yml.example
+!**/application-local.properties.example
+
+# Archivos de variables de entorno (.env)
+.env
+.env.*
+*.env
+.envrc
+!.env.example
+!.env.template
+!.env.dist
+
+# Credenciales y archivos de configuración de Aiven / Bases de Datos en la nube
+*aiven*
+!*aiven*.example
+!*aiven*.md
+aiven-credentials.json
+aiven.conf
+aiven.json
+
+# Certificados SSL/TLS, llaves privadas y keystores (ej. Aiven ca.pem, accesos SSL)
+ca.pem
+client-key.pem
+client-cert.pem
+*.pem
+*.crt
+*.key
+*.cer
+*.der
+*.pfx
+*.p12
+*.jks
+*.keystore
+*.truststore
+
+# Credenciales de proveedores Cloud (AWS, GCP, Azure, Firebase)
+*credentials*.json
+*credentials*.yml
+*credentials*.yaml
+credentials.csv
+service-account*.json
+gcp-key*.json
+google-services.json
+.aws/
+.gcloud/
+
+# Llaves SSH y tokens de acceso
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+*.id_rsa
+auth_token*
+jwt_secret*
+
+# Docker compose overrides locales con contraseñas
+docker-compose.override.yml
+docker-compose.local.yml
+
+# -----------------------------------------------------------------------------
+# IDE: IntelliJ IDEA
+# -----------------------------------------------------------------------------
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+.idea_modules/
+
+# -----------------------------------------------------------------------------
+# IDE: Eclipse
+# -----------------------------------------------------------------------------
+.project
+.classpath
+.settings/
+.metadata/
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.loadpath
+.factorypath
+
+# -----------------------------------------------------------------------------
+# IDE: Visual Studio Code
+# -----------------------------------------------------------------------------
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# -----------------------------------------------------------------------------
+# IDE: NetBeans
+# -----------------------------------------------------------------------------
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# -----------------------------------------------------------------------------
+# BlueJ / Otros editores
+# -----------------------------------------------------------------------------
+*.ctxt
+.springBeans
+
+# -----------------------------------------------------------------------------
+# Archivos del Sistema Operativo
+# -----------------------------------------------------------------------------
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon\r
+._*
+.Spotlight-V100
+.Trashes
+
+# Linux
+*~
+.directory
