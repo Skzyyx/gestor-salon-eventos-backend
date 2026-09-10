@@ -291,3 +291,16 @@ Ejecutar la suite de tests unitarios y de integración con Maven:
 ```bash
 mvn clean test
 ```
+
+---
+
+## 📋 Documentación del Curso (DevOps)
+
+Este repositorio es el proyecto del equipo para la materia de DevOps. La documentación del proceso vive junto al código:
+
+- [`working-agreement.md`](working-agreement.md): acuerdos de trabajo del equipo y estrategia de branching (**GitHub Flow**).
+- [`docs/backlog.md`](docs/backlog.md): backlog de capacidades DevOps por semana.
+- [`docs/adr/`](docs/adr/): Architecture Decision Records (plantilla en `0000-template.md`).
+- [`docs/evidence/sprint-XX.md`](docs/evidence/): evidencia acumulativa por Sprint. No se sobrescriben evidencias anteriores; cada Sprint conserva su propio archivo.
+
+Antes de que aplique en el Sprint correspondiente, en las secciones de PR, pipeline, deployment o infraestructura se registra: `N/A — todavía no corresponde a este Sprint.`
