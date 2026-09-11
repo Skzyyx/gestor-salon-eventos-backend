@@ -12,7 +12,7 @@ jobs:
   build:
     name: Build and analyze
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -23,6 +23,13 @@ jobs:
         with:
           java-version: 17
           distribution: 'temurin'
+
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
 
       - name: Cache Maven packages
         uses: actions/cache@v4
@@ -36,16 +43,17 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_GOAL: org.sonarsource.scanner.maven:sonar-maven-plugin:5.8.0.7211:sonar
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            mvn -B verify -DskipTests org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+            mvn -B verify "$SONAR_GOAL" \
               -Dsonar.projectKey=gestor-salon-eventos-backend \
               -Dsonar.qualitygate.wait=true \
               -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
               -Dsonar.pullrequest.branch=${{ github.head_ref }} \
               -Dsonar.pullrequest.base=${{ github.base_ref }}
           else
-            mvn -B verify -DskipTests org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+            mvn -B verify "$SONAR_GOAL" \
               -Dsonar.projectKey=gestor-salon-eventos-backend \
               -Dsonar.qualitygate.wait=true \
               -Dsonar.branch.name=${{ github.ref_name }}
