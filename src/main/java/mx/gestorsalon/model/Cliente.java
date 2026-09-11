@@ -19,7 +19,6 @@ public class Cliente {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Relación multi-tenant: a qué negocio pertenece este cliente.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "negocio_id", nullable = false)
     private Negocio negocio;
@@ -27,14 +26,12 @@ public class Cliente {
     @Column(nullable = false, length = 100)
     private String nombre;
 
-    // Teléfono como VARCHAR: admite "+52", espacios, guiones y ceros a la izquierda.
     @Column(nullable = false, length = 20)
     private String telefono;
 
     @Column(length = 255)
     private String email;
 
-    // Dirección compuesta (value object reutilizable; sus columnas viven en esta tabla)
     @Embedded
     private Direccion direccion;
 
