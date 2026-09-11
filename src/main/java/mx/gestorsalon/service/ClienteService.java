@@ -21,6 +21,7 @@ public class ClienteService {
 
     private final ClienteRepository clienteRepository;
     private final ClienteMapper clienteMapper;
+    private final DireccionMapper direccionMapper;
 
     @Transactional(readOnly = true)
     public List<ClienteDTO> getAllByNegocio(Long negocioId) {
@@ -45,7 +46,7 @@ public class ClienteService {
         cliente.setNombre(dto.getNombre());
         cliente.setTelefono(dto.getTelefono());
         cliente.setEmail(dto.getEmail());
-        cliente.setDireccion(DireccionMapper.toEntity(dto.getDireccion()));
+        cliente.setDireccion(direccionMapper.toEntity(dto.getDireccion()));
         if (dto.getActivo() != null) {
             cliente.setActivo(dto.getActivo());
         }

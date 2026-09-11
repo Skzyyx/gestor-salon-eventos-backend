@@ -26,6 +26,8 @@ public class AdminService {
     private final UsuarioRepository usuarioRepository;
     private final RolNegocioService rolNegocioService;
     private final PasswordEncoder passwordEncoder; // el bean BCrypt definido en tu SecurityConfig
+    private final NegocioMapper negocioMapper;
+    private final UsuarioMapper usuarioMapper;
 
     /**
      * Da de alta un negocio NUEVO junto con su primer usuario ADMIN.
@@ -76,8 +78,8 @@ public class AdminService {
         // 5. Devolvemos un resumen SEGURO (sin password) usando nuestros DTOs + tu
         // Mapper
         return NegocioAdminResponse.builder()
-                .negocio(NegocioMapper.toResponse(negocioGuardado))
-                .admin(UsuarioMapper.toResponse(adminGuardado))
+                .negocio(negocioMapper.toResponse(negocioGuardado))
+                .admin(usuarioMapper.toResponse(adminGuardado))
                 .build();
     }
 
@@ -87,7 +89,7 @@ public class AdminService {
     @Transactional(readOnly = true)
     public List<NegocioResponse> listarNegocios() {
         return negocioRepository.findAll().stream()
-                .map(NegocioMapper::toResponse)
+                .map(negocioMapper::toResponse)
                 .toList();
     }
 }
