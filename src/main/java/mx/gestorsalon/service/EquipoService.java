@@ -63,8 +63,6 @@ public class EquipoService {
             Usuario guardado = usuarioRepository.save(trabajador);
             return mapToResponse(guardado);
         } catch (DataIntegrityViolationException e) {
-            // Correo opaco: no revelamos si existe en otro negocio o en el mismo, mensaje
-            // genérico
             throw new RecursoDuplicadoException("El correo ya se encuentra registrado o no es válido.");
         }
     }
