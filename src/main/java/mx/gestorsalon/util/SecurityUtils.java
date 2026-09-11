@@ -15,6 +15,10 @@ public class SecurityUtils {
 
     private final UsuarioRepository usuarioRepository;
 
+    private SecurityUtils() {
+        throw new IllegalStateException("Utility class");
+    }
+
     /**
      * Devuelve el Usuario autenticado, recargado fresco desde la BD.
      * Lo usamos cuando NO queremos asumir que tenga negocio (ej. el SUPERADMIN).
