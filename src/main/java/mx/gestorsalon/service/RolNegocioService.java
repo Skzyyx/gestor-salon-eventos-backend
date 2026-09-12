@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import mx.gestorsalon.exception.RecursoNoEncontradoException;
 import mx.gestorsalon.exception.AccesoDenegadoException;
 import mx.gestorsalon.model.Negocio;
-import mx.gestorsalon.model.Permiso;
+import mx.gestorsalon.model..enums.Permiso;
 import mx.gestorsalon.model.RolNegocio;
 import mx.gestorsalon.repository.RolNegocioRepository;
 import mx.gestorsalon.security.CustomUserDetails;

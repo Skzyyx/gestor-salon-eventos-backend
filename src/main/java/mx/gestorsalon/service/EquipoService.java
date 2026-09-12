@@ -8,7 +8,7 @@ import mx.gestorsalon.dto.equipo.RolNegocioResponse;
 import mx.gestorsalon.exception.RecursoDuplicadoException;
 import mx.gestorsalon.exception.RecursoNoEncontradoException;
 import mx.gestorsalon.exception.AccesoDenegadoException;
-import mx.gestorsalon.model.Rol;
+import mx.gestorsalon.model.enums.Rol;
 import mx.gestorsalon.model.RolNegocio;
 import mx.gestorsalon.model.Usuario;
 import mx.gestorsalon.repository.UsuarioRepository;
@@ -63,13 +63,15 @@ public class EquipoService {
             Usuario guardado = usuarioRepository.save(trabajador);
             return mapToResponse(guardado);
         } catch (DataIntegrityViolationException e) {
-            // Correo opaco: no revelamos si existe en otro negocio o en el mismo, mensaje genérico
+            // Correo opaco: no revelamos si existe en otro negocio o en el mismo, mensaje
+            // genérico
             throw new RecursoDuplicadoException("El correo ya se encuentra registrado o no es válido.");
         }
     }
 
     @Transactional
-    public TrabajadorResponse actualizarTrabajador(Long id, CustomUserDetails actor, ActualizarTrabajadorRequest request) {
+    public TrabajadorResponse actualizarTrabajador(Long id, CustomUserDetails actor,
+            ActualizarTrabajadorRequest request) {
         Long negocioId = actor.getUsuario().getNegocio().getId();
 
         // 1. Invariante: Aislamiento por tenant y Sin auto-escalada
@@ -105,7 +107,8 @@ public class EquipoService {
                 .orElseThrow(() -> new RecursoNoEncontradoException("Trabajador no encontrado"));
 
         if (usuario.getRol() != Rol.EMPLEADO) {
-            throw new IllegalArgumentException("Solo se puede gestionar usuarios con rol EMPLEADO a través de este módulo");
+            throw new IllegalArgumentException(
+                    "Solo se puede gestionar usuarios con rol EMPLEADO a través de este módulo");
         }
         return usuario;
     }

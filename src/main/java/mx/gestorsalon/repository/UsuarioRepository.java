@@ -1,6 +1,6 @@
 package mx.gestorsalon.repository;
 
-import mx.gestorsalon.model.Rol;
+import mx.gestorsalon.model.enums.Rol;
 import mx.gestorsalon.model.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
