@@ -1,13 +1,17 @@
 package mx.gestorsalon.mapper;
 
+import lombok.RequiredArgsConstructor;
 import mx.gestorsalon.dto.negocio.NegocioResponse;
 import mx.gestorsalon.model.Negocio;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class NegocioMapper {
 
-    public static NegocioResponse toResponse(Negocio negocio) {
+    private final DireccionMapper direccionMapper;
+
+    public NegocioResponse toResponse(Negocio negocio) {
         if (negocio == null)
             return null;
 
@@ -21,7 +25,7 @@ public class NegocioMapper {
                 .telefono(negocio.getTelefono())
                 .email(negocio.getEmail())
                 .descripcion(negocio.getDescripcion())
-                .direccion(DireccionMapper.toDTO(negocio.getDireccion()))
+                .direccion(direccionMapper.toDTO(negocio.getDireccion()))
                 .build();
     }
 }

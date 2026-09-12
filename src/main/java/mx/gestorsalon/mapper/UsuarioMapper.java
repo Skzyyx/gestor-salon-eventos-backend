@@ -6,13 +6,11 @@ import org.springframework.stereotype.Component;
 
 /**
  * Convierte la entidad Usuario en su DTO seguro (sin password_hash).
- * Sigue el mismo patrón que NegocioMapper / ServicioMapper: clase @Component
- * con método estático toResponse(). Reutilizable desde cualquier servicio.
  */
 @Component
 public class UsuarioMapper {
 
-    public static UsuarioResponse toResponse(Usuario usuario) {
+    public UsuarioResponse toResponse(Usuario usuario) {
         if (usuario == null)
             return null;
 
