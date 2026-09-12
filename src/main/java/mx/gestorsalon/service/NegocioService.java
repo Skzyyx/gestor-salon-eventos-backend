@@ -18,6 +18,7 @@ public class NegocioService {
 
     private final NegocioRepository negocioRepository;
     private final SecurityUtils securityUtils;
+    private final NegocioMapper negocioMapper;
 
     /**
      * Obtiene el negocio asociado al usuario que está logueado actualmente.
@@ -25,7 +26,7 @@ public class NegocioService {
     @Transactional(readOnly = true)
     public NegocioResponse getMiNegocio() {
         Negocio negocio = securityUtils.getNegocioActual();
-        return NegocioMapper.toResponse(negocio);
+        return negocioMapper.toResponse(negocio);
     }
 
     /**
@@ -89,7 +90,7 @@ public class NegocioService {
         // Guardamos los cambios en MySQL
         Negocio negocioActualizado = negocioRepository.save(negocio);
 
-        return NegocioMapper.toResponse(negocioActualizado);
+        return negocioMapper.toResponse(negocioActualizado);
     }
 
 }

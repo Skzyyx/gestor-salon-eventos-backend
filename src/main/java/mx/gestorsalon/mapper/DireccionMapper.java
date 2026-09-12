@@ -2,22 +2,21 @@ package mx.gestorsalon.mapper;
 
 import mx.gestorsalon.dto.DireccionDTO;
 import mx.gestorsalon.model.Direccion;
+import org.springframework.stereotype.Component;
 
 /**
  * Mapeo centralizado del value object {@link Direccion} <-> {@link DireccionDTO}.
  * Lo comparten Negocio y Cliente (y luego cualquier entidad con dirección), para no
  * repetir la conversión campo a campo en cada mapper.
  */
-public final class DireccionMapper {
-
-    private DireccionMapper() {
-    }
+@Component
+public class DireccionMapper {
 
     /**
      * Devuelve siempre un DTO (vacío, no null) para que el frontend reciba el objeto
      * y no tenga que protegerse contra null cuando la entidad aún no tiene dirección.
      */
-    public static DireccionDTO toDTO(Direccion d) {
+    public DireccionDTO toDTO(Direccion d) {
         DireccionDTO dto = new DireccionDTO();
         if (d != null) {
             dto.setCalle(d.getCalle());
@@ -34,7 +33,7 @@ public final class DireccionMapper {
      * Convierte el DTO entrante a value object. Devuelve null cuando no se envió
      * dirección, para no persistir un objeto embebido con todos sus campos vacíos.
      */
-    public static Direccion toEntity(DireccionDTO dto) {
+    public Direccion toEntity(DireccionDTO dto) {
         if (dto == null) {
             return null;
         }
