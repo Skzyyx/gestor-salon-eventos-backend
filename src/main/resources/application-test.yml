@@ -5,6 +5,9 @@ spring:
     username: sa
     password:
 
+  flyway:
+    enabled: false
+
   jpa:
     hibernate:
       ddl-auto: create-drop
@@ -18,3 +21,8 @@ app:
   jwt:
     secret: test-secret-key-que-debe-tener-al-menos-256-bits-de-largo-ok
     expiration-ms: 3600000
+
+  cloudinary:
+    cloud-name: test
+    api-key: test
+    api-secret: test
