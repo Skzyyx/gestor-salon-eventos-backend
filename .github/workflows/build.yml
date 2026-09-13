@@ -45,6 +45,16 @@ jobs:
             SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
             SONAR_GOAL: org.sonarsource.scanner.maven:sonar-maven-plugin:5.8.0.7211:sonar
         run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
             mvn -B verify "$SONAR_GOAL" \
               -Dsonar.projectKey=gestor-salon-eventos-backend \
-              -Dsonar.qualitygate.wait=true
+              -Dsonar.qualitygate.wait=true \
+              -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
+              -Dsonar.pullrequest.branch=${{ github.head_ref }} \
+              -Dsonar.pullrequest.base=${{ github.base_ref }}
+          else
+            mvn -B verify "$SONAR_GOAL" \
+              -Dsonar.projectKey=gestor-salon-eventos-backend \
+              -Dsonar.qualitygate.wait=true \
+              -Dsonar.branch.name=${{ github.ref_name }}
+          fi
