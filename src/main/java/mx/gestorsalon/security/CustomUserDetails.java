@@ -18,7 +18,7 @@ import java.util.List;
  */
 public class CustomUserDetails implements UserDetails {
 
-    private final Usuario usuario;
+    private final transient Usuario usuario;
 
     public CustomUserDetails(Usuario usuario) {
         this.usuario = usuario;
