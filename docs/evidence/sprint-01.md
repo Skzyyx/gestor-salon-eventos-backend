@@ -40,7 +40,7 @@ exploratory CI and SonarQube work of September 11, which had been pushed directl
 
 - Ruleset on `main`: pull request required with 2 approvals, squash as the only merge method,
   `Build` status check required, force pushes blocked, branch deletion blocked.
-- _(Screenshot line added by José Luis in his turn.)_
+- Screenshot of the ruleset: `img/sprint-01-ruleset.png`.
 
 ### Pipeline
 
@@ -92,6 +92,19 @@ project had been committed that week (run 34783682667, attempt 1); it was fixed 
 fixed baseline ("Specific analysis") and re-running the same commit (attempt 2). ADR-0002 is
 amended in #10.
 
+### 3. Resetting `main` and keeping the `historial` branch (José Luis, Phase 0 and PR #3)
+**Diagnosis.** On September 11 `main` had received 11 exploratory commits on top of the 2
+baseline commits: 9 by direct push and 2 merge commits from PRs #1 and #2. PR #1 was merged
+with no approvals, both PRs were merged without squash, and no branch was deleted. The
+working agreement existed but had not been followed, so the sprint evidence was not valid.
+**Decision.** Keep the 2 baseline commits, move the exploratory history to the `historial`
+branch (read-only by agreement) and reset `main` with a controlled force push: force pushes
+allowed for a few minutes and blocked again right after. Redo the content through 8 PRs using
+`cherry-pick -n` and each author's own commits.
+**Trade-off.** One day of repeated work in exchange for real traceability: the Actions runs
+and Sonar analyses of September 11 still resolve because their commits exist in `historial`,
+and `main` ends up with one clean commit per PR.
+
 ## Contribuciones del equipo
 
 - Christopher Álvarez Centeno — Author of #4 (compilation and test-profile fix) and #9
@@ -102,13 +115,33 @@ amended in #10.
   SonarQube analysis in PR and branch mode, ADR-0002). Reviewer of #3, #4, #5 and #7.
   Diagnosis of the quality gate threshold.
 
-## Mini Definition of Done
+- José Luis Islas Molina (Leader) — Phase 0 in full: `historial` branch, `main` reset, ruleset
+  on `main` (2 approvals, squash only, `Build` required, force push and deletion blocked),
+  quality gate and new-code baseline in SonarQube, cleanup of the merged branches. Author of
+  #3 (working agreement, PR template, README) and #5 (CI workflow). Reviewer of #4, #6, #7,
+  #9 and #10. Final check of this evidence file.
 
-_(Turn 4: José Luis.)_
+## Mini Definition of Done
+- [x] `main` protected: PR required, 2 approvals, squash only, `Build` status check, no force push
+- [x] 8 PRs merged with squash, template filled in and 2 approvals each
+- [x] Merged `feature/*` branches deleted; `main` and `historial` are the only remote branches
+- [x] CI with tests on every PR and push; 37 tests green
+- [x] SonarQube with coverage and a blocking quality gate; ADR-0002 documents the threshold
+- [x] Working agreement updated with PR format and quality gates (#3)
+- [x] `historial` branch kept and documented in README
+- [x] Sprint evidence with one entry per member
 
 ## Retro: Keep / Change / Next experiment
-
-_(Turn 4: José Luis.)_
+- **Keep**: explicit turns and one PR per change. Nobody overwrote anyone else's work and
+  every PR was reviewed within a day.
+- **Change**: check the tools' real state before writing about it. The stale status check
+  blocked the first PR, the new-code definition turned `main` red, the 7 merged branches were
+  still on the remote at sprint close, and 5 PR descriptions kept `[link]` placeholders. From
+  now on head branches are deleted automatically, and the reviewer checks that every link in
+  the description resolves before approving.
+- **Next experiment**: unit tests for `service/` with Mockito in Sprint 2, to resolve the
+  9 remaining non-TODO Sonar findings (8 in `service/`, 1 in `PaqueteMapper`) and be able
+  to raise the gate to 80%.
 
 ## Uso de IA
 
