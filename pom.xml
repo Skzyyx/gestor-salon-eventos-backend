@@ -180,6 +180,31 @@
                 </configuration>
             </plugin>
 
+            <!-- JaCoCo: genera el reporte de cobertura que SonarQube importa.
+                prepare-agent engancha el agente a las pruebas de Surefire y
+                report escribe target/site/jacoco/jacoco.xml en la fase verify,
+                que es la ruta por defecto donde el scanner de Sonar lo busca.
+                Sin este plugin el Quality Gate reporta 0% de cobertura. -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.13</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
