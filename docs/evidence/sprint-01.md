@@ -79,11 +79,28 @@ profile. On September 11 this was "solved" by deleting the test and running CI w
 against a real MySQL. Verifying migrations in CI (Testcontainers or a MySQL service) stays
 pending for a later sprint.
 
+### 2. A reachable quality gate instead of a disabled one (Freddy, PR #8, ADR-0002)
+**Diagnosis.** Sonar's default gate "Sonar way" requires 80% coverage on new code. With tests
+only in `mapper/`, the first PR touching a service would fail even when the change was
+correct, and the easy way out would have been to drop `sonar.qualitygate.wait`.
+**Decision.** Project-specific gate `gestor-salon-sprint1`, a copy of "Sonar way" with 50%
+coverage on new code and every other condition unchanged; blocking. Documented in ADR-0002.
+**Trade-off.** 50% lets thinly covered code through; mitigated by the two-person review and
+the commitment to raise it to 80% once `service/` has tests (target: Sprint 3). In addition,
+the first `main` analysis failed because the new-code definition was "30 days" and the whole
+project had been committed that week (run 34783682667, attempt 1); it was fixed by setting a
+fixed baseline ("Specific analysis") and re-running the same commit (attempt 2). ADR-0002 is
+amended in #10.
+
 ## Contribuciones del equipo
 
 - Christopher Álvarez Centeno — Author of #4 (compilation and test-profile fix) and #9
   (4 legacy Sonar findings resolved under the gate; 13 remain open on purpose). Reviewer of
   #6, #8 and #10. Diagnosis of the Flyway failure in tests.
+
+- Freddy Alí Castro Román — Author of #6 (mappers as Spring components) and #8 (JaCoCo,
+  SonarQube analysis in PR and branch mode, ADR-0002). Reviewer of #3, #4, #5 and #7.
+  Diagnosis of the quality gate threshold.
 
 ## Mini Definition of Done
 
