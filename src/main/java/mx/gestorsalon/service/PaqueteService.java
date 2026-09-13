@@ -54,7 +54,7 @@ public class PaqueteService {
         Paquete paquete = obtenerPropio(negocio, paqueteId);
         validarPaquete(negocio.getId(), dto, paqueteId);
 
-        // Conservamos el precio "de ese momento" de las líneas que ya existían;
+        // Conservamos el precio "de ese momento" de las líneas que ya existían,
         // solo las nuevas congelan el precio actual del servicio.
         Map<Long, BigDecimal> preciosPrevios = paquete.getItems().stream()
                 .collect(Collectors.toMap(
@@ -108,8 +108,10 @@ public class PaqueteService {
     }
 
     /**
-     * Construye las líneas del paquete validando tenant y congelando el precio unitario:
-     * reusa el precio previo si la línea ya existía, o toma el precio actual del servicio
+     * Construye las líneas del paquete validando tenant y congelando el precio
+     * unitario:
+     * reusa el precio previo si la línea ya existía, o toma el precio actual del
+     * servicio
      * si es nueva.
      */
     private void aplicarItems(Negocio negocio, Paquete paquete, List<PaqueteServicioDTO> itemsDto,
