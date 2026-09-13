@@ -31,5 +31,11 @@ con al menos 2 aprobaciones y quality gates en verde. Las reglas concretas está
 
 ## Evidencia de validación
 
-- Regla de protección de `main` configurada en GitHub (PR obligatorio, 2 aprobaciones, sin push directo).
-- Primeros PRs del Sprint 1 integrados siguiendo el flujo (ver `docs/evidence/sprint-01.md`).
+- Ruleset on `main` active: pull request required with 2 approvals, squash as the only merge
+  method, `Build` status check required, force pushes and branch deletion blocked
+  (`docs/evidence/img/sprint-01-ruleset.png`).
+- Sprint 1 integrated entirely through PRs with squash and merge and 2 approvals each: #3, #4,
+  #5, #6, #7, #8, #9 and #10 (full table in `docs/evidence/sprint-01.md`). Merged branches
+  deleted; `main` and `historial` are the only remote branches.
+- `main` ends up with one commit per PR and no merge commits: `git log --oneline main` shows
+  the 2 baseline commits and 8 squash commits.
