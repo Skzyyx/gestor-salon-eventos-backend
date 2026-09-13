@@ -43,5 +43,5 @@ correct, and the temptation would be to turn the gate off.
 
 - Gate `gestor-salon-sprint1` assigned to the project in SonarQube:
   ![Quality gate gestor-salon-sprint1](../evidence/img/adr-0002-quality-gate.png)
-- PR 5 analysed with the gate green and coverage > 0%: _pending, to be completed when the PR is opened_.
+- PR 5 analysed with the gate green and coverage > 0%: [#8](https://github.com/Skzyyx/gestor-salon-eventos-backend/pull/8) · [Sonar Analysis](http://66.70.181.143:26665/dashboard?id=gestor-salon-eventos-backend&pullRequest=8).
 - PR 6, the first PR with Java code evaluated under the gate: _pending, to be completed in PR 7_.
