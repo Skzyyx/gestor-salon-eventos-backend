@@ -32,7 +32,7 @@ public class ClienteMapper {
         cliente.setTelefono(dto.getTelefono());
         cliente.setEmail(dto.getEmail());
         cliente.setDireccion(direccionMapper.toEntity(dto.getDireccion()));
-        cliente.setActivo(dto.getActivo() != null ? dto.getActivo() : true);
+        cliente.setActivo(dto.getActivo() == null || dto.getActivo());
         return cliente;
     }
 }
