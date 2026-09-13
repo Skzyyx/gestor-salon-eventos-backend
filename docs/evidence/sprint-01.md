@@ -1,12 +1,14 @@
 # Sprint 1 Evidence
 
 ## Sprint Goal
+
 Adopt the GitHub Flow described in the working agreement for real: `main` protected by a
 ruleset, every change through a Pull Request with 2 approvals, continuous integration running
 the test suite on every PR, and a blocking SonarQube quality gate. Redo, under that flow, the
 exploratory CI and SonarQube work of September 11, which had been pushed directly to `main`.
 
 ## Incremento demostrable
+
 - `main` contains the 2 baseline commits plus one squash commit per PR (8 once this PR is
   merged), all with Conventional Commits prefixes and no merge commits.
 - `Build` pipeline (GitHub Actions) on every PR and every push to `main`: compiles, runs the
@@ -22,23 +24,26 @@ exploratory CI and SonarQube work of September 11, which had been pushed directl
 ## Evidencia aplicable
 
 ### Pull Requests
-| PR | Title | Author | Approved by | Merged |
-| :--- | :--- | :--- | :--- | :--- |
-| [#3](https://github.com/Skzyyx/gestor-salon-eventos-backend/pull/3) | docs(wa): mandatory PR format, quality gates and historial branch rule | José Luis | Freddy, José Eduardo | 2026-09-12 |
-| [#4](https://github.com/Skzyyx/gestor-salon-eventos-backend/pull/4) | fix: make main compile and pass mvn clean test | Chris | Freddy, José Luis | 2026-09-12 |
-| [#5](https://github.com/Skzyyx/gestor-salon-eventos-backend/pull/5) | ci: add GitHub Actions workflow with Maven build and tests | José Luis | Freddy, José Eduardo | 2026-09-12 |
-| [#6](https://github.com/Skzyyx/gestor-salon-eventos-backend/pull/6) | refactor(mapper): standardize mappers as Spring components | Freddy | Chris, José Luis | 2026-09-12 |
-| [#7](https://github.com/Skzyyx/gestor-salon-eventos-backend/pull/7) | test(mapper): add unit tests for all mappers | José Eduardo | Freddy, José Luis | 2026-09-12 |
-| [#8](https://github.com/Skzyyx/gestor-salon-eventos-backend/pull/8) | ci: SonarQube analysis with JaCoCo coverage and PR decoration | Freddy | Chris, José Eduardo | 2026-09-13 |
-| [#9](https://github.com/Skzyyx/gestor-salon-eventos-backend/pull/9) | refactor: fix Sonar findings on covered code and test setup | Chris | José Eduardo, José Luis | 2026-09-13 |
-| [#10](https://github.com/Skzyyx/gestor-salon-eventos-backend/pull/10) | docs(evidence): Sprint 1 evidence and ADR validation | José Eduardo (commits from all four) | José Luis, Chris | this PR |
+
+| PR                                                                    | Title                                                                  | Author                               | Approved by             | Merged     |
+| :-------------------------------------------------------------------- | :--------------------------------------------------------------------- | :----------------------------------- | :---------------------- | :--------- |
+| [#3](https://github.com/Skzyyx/gestor-salon-eventos-backend/pull/3)   | docs(wa): mandatory PR format, quality gates and historial branch rule | José Luis                            | Freddy, José Eduardo    | 2026-09-12 |
+| [#4](https://github.com/Skzyyx/gestor-salon-eventos-backend/pull/4)   | fix: make main compile and pass mvn clean test                         | Chris                                | Freddy, José Luis       | 2026-09-12 |
+| [#5](https://github.com/Skzyyx/gestor-salon-eventos-backend/pull/5)   | ci: add GitHub Actions workflow with Maven build and tests             | José Luis                            | Freddy, José Eduardo    | 2026-09-12 |
+| [#6](https://github.com/Skzyyx/gestor-salon-eventos-backend/pull/6)   | refactor(mapper): standardize mappers as Spring components             | Freddy                               | Chris, José Luis        | 2026-09-12 |
+| [#7](https://github.com/Skzyyx/gestor-salon-eventos-backend/pull/7)   | test(mapper): add unit tests for all mappers                           | José Eduardo                         | Freddy, José Luis       | 2026-09-12 |
+| [#8](https://github.com/Skzyyx/gestor-salon-eventos-backend/pull/8)   | ci: SonarQube analysis with JaCoCo coverage and PR decoration          | Freddy                               | Chris, José Eduardo     | 2026-09-13 |
+| [#9](https://github.com/Skzyyx/gestor-salon-eventos-backend/pull/9)   | refactor: fix Sonar findings on covered code and test setup            | Chris                                | José Eduardo, José Luis | 2026-09-13 |
+| [#10](https://github.com/Skzyyx/gestor-salon-eventos-backend/pull/10) | docs(evidence): Sprint 1 evidence and ADR validation                   | José Eduardo (commits from all four) | José Luis, Chris        | this PR    |
 
 ### Branch protection
+
 - Ruleset on `main`: pull request required with 2 approvals, squash as the only merge method,
   `Build` status check required, force pushes blocked, branch deletion blocked.
 - _(Screenshot line added by José Luis in his turn.)_
 
 ### Pipeline
+
 - First `Build` run on a PR (#5): [run 34720451041](https://github.com/Skzyyx/gestor-salon-eventos-backend/actions/runs/34720451041).
 - First run with the mapper tests, 37 tests (#7): [run 34722331601](https://github.com/Skzyyx/gestor-salon-eventos-backend/actions/runs/34722331601).
 - First run with the SonarQube step (#8): [run 34783530940](https://github.com/Skzyyx/gestor-salon-eventos-backend/actions/runs/34783530940).
@@ -48,25 +53,46 @@ exploratory CI and SonarQube work of September 11, which had been pushed directl
 - `main` run after merging #9: [run 34785880514](https://github.com/Skzyyx/gestor-salon-eventos-backend/actions/runs/34785880514).
 
 ### Quality gate
+
 - Gate `gestor-salon-sprint1` assigned to the project: `img/adr-0002-quality-gate.png`.
 - PR #8 analysis, gate green with coverage above 0%: [Sonar, PR 8](http://66.70.181.143:26665/dashboard?id=gestor-salon-eventos-backend&pullRequest=8).
 - PR #9 analysis, first PR with Java changes evaluated under the gate, gate green: [Sonar, PR 9](http://66.70.181.143:26665/dashboard?id=gestor-salon-eventos-backend&pullRequest=9).
 - `main` branch: [Sonar, main](http://66.70.181.143:26665/dashboard?id=gestor-salon-eventos-backend).
 
 ### Deployment / infrastructure
+
 N/A — todavía no corresponde a este Sprint.
 
 ## Diagnóstico, decisión y trade-off
-_(Turns 2, 3 and 4: Chris, Freddy and José Luis each add one block here.)_
+
+### 1. The only test in the project had never passed (Chris, PR #4)
+
+**Diagnosis.** `mvn clean test` had failed since the Initial Commit. The `test` profile uses an
+in-memory H2 database but did not disable Flyway, and the 12 migrations are written in MySQL
+dialect: `V4` fails on an `ALTER TABLE` with two `ADD COLUMN` clauses. With Flyway off it still
+failed because `CloudinaryConfig` requires `app.cloudinary.*`, which only exists in the `local`
+profile. On September 11 this was "solved" by deleting the test and running CI with `-DskipTests`.
+**Decision.** Fix the test profile: `spring.flyway.enabled: false` under `test` (Hibernate
+`create-drop` already builds the schema from the entities) plus dummy Cloudinary values. Keep
+`contextLoads`.
+**Trade-off.** Tests no longer execute the migrations, so a broken migration is only caught
+against a real MySQL. Verifying migrations in CI (Testcontainers or a MySQL service) stays
+pending for a later sprint.
 
 ## Contribuciones del equipo
-_(Each member adds their own entry in their turn.)_
+
+- Christopher Álvarez Centeno — Author of #4 (compilation and test-profile fix) and #9
+  (4 legacy Sonar findings resolved under the gate; 13 remain open on purpose). Reviewer of
+  #6, #8 and #10. Diagnosis of the Flyway failure in tests.
 
 ## Mini Definition of Done
+
 _(Turn 4: José Luis.)_
 
 ## Retro: Keep / Change / Next experiment
+
 _(Turn 4: José Luis.)_
 
 ## Uso de IA
+
 _(Turn 5: José Eduardo.)_
