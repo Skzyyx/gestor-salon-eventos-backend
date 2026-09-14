@@ -121,6 +121,11 @@ and `main` ends up with one clean commit per PR.
   #3 (working agreement, PR template, README) and #5 (CI workflow). Reviewer of #4, #6, #7,
   #9 and #10. Final check of this evidence file.
 
+- José Eduardo Aguilar García — Author of #7 (unit tests for the 8 mappers, 36 cases) and #10
+ (this evidence). Reviewer of #3, #5, #8 and #9. Structure and final review of the evidence
+ file.
+
+
 ## Mini Definition of Done
 - [x] `main` protected: PR required, 2 approvals, squash only, `Build` status check, no force push
 - [x] 8 PRs merged with squash, template filled in and 2 approvals each
@@ -144,5 +149,16 @@ and `main` ends up with one clean commit per PR.
   to raise the gate to 80%.
 
 ## Uso de IA
-
-_(Turn 5: José Eduardo.)_
+- Tool: Claude Code (Claude Fable 5.1).
+- What it was used for: analysis of the git history against the working agreement; the
+  re-execution playbook with PR assignments, reviewers and commands; diagnosis of the Flyway
+  failure in the test profile and of the quality gate failure on `main`.
+- What we verified or changed: every proposed fix was reproduced locally first
+  (`mvn clean test`) before applying it; the PR originally planned around `SecurityUtils`
+  was dropped because the real Sonar analysis did not flag it, and was re-scoped to the
+  actual findings; the "30 days" new-code definition proposed at first turned out to be wrong
+  for this repository and was replaced by a fixed baseline; the first draft of this closing
+  step referenced screenshots that had never been taken and listed reviewers that did not
+  match the real approvals, so it was rewritten against the repository state before this
+  file was filled in. No commit was generated without its author running and verifying it
+  on their own machine.
