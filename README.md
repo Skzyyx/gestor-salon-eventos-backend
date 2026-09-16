@@ -343,7 +343,7 @@ Este repositorio es el proyecto del equipo para la materia de DevOps. La documen
 
 Antes de que aplique en el Sprint correspondiente, en las secciones de PR, pipeline, deployment o infraestructura se registra: `N/A — todavía no corresponde a este Sprint.`
 
-## 🔁 Integración continua y calidad de código
+## 🔁 Continuous integration and code quality
 
 Every push to `main` and every pull request targeting `main` runs the `Build` workflow
 ([`.github/workflows/build.yml`](.github/workflows/build.yml)) on a GitHub-hosted
@@ -352,7 +352,7 @@ coverage and sends the result to SonarQube, then waits for the quality gate. If 
 fails, the Maven goal fails, the `Build` check turns red and the branch ruleset blocks the
 merge. `Build` is the status check required on `main`, together with 2 approvals.
 
-### Requerimientos
+### Requirements
 
 - JDK **17** (Temurin or Oracle). JDK 25 does not compile the project: Lombok 1.18.36,
   bundled with Spring Boot 3.4.1, does not support it.
@@ -360,7 +360,7 @@ merge. `Build` is the status check required on `main`, together with 2 approvals
 - For a local SonarQube analysis: network access to the server and a personal analysis
   token (SonarQube → My Account → Security → Generate Tokens, type *Project Analysis Token*).
 
-### Comandos en local
+### Local commands
 
 ```bash
 # Build, run the 45 tests and produce target/site/jacoco/jacoco.xml (what CI runs first)
@@ -378,7 +378,7 @@ mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:5.8.0.7211:sonar 
   -Dsonar.branch.name=$(git branch --show-current)
 ```
 
-### Variables y secrets (sólo nombres, jamás commitear valores)
+### Variables and secrets (names only, values are never committed)
 
 | Name | Where it lives | Purpose |
 | :--- | :--- | :--- |
@@ -404,7 +404,7 @@ mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:5.8.0.7211:sonar 
 - The gate is blocking: `-Dsonar.qualitygate.wait=true` makes the job wait for the result
   and fail when the gate fails.
 
-### Evidencia
+### Evidence
 
 - Sprint 1 (pipeline, PRs, gate): [`docs/evidence/sprint-01.md`](docs/evidence/sprint-01.md)
 - Unit 1 deliverable (controlled failure, traceability, limitations):
