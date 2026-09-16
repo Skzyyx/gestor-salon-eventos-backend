@@ -342,3 +342,71 @@ Este repositorio es el proyecto del equipo para la materia de DevOps. La documen
 - Rama [`historial`](https://github.com/Skzyyx/gestor-salon-eventos-backend/tree/historial): archivo de solo lectura con el trabajo exploratorio de CI, SonarQube y tests realizado el 11 de septiembre de 2026 antes de adoptar el flujo de PRs. Se conserva para que los runs de GitHub Actions y los análisis de SonarQube de esa fecha sigan apuntando a commits existentes. No se mergea, no se rebasea y no se borra; el trabajo válido se rehízo en `main` mediante PRs durante el Sprint 1.
 
 Antes de que aplique en el Sprint correspondiente, en las secciones de PR, pipeline, deployment o infraestructura se registra: `N/A — todavía no corresponde a este Sprint.`
+
+## 🔁 Integración continua y calidad de código
+
+Every push to `main` and every pull request targeting `main` runs the `Build` workflow
+([`.github/workflows/build.yml`](.github/workflows/build.yml)) on a GitHub-hosted
+`ubuntu-latest` runner. The job compiles the project, runs the test suite with JaCoCo
+coverage and sends the result to SonarQube, then waits for the quality gate. If the gate
+fails, the Maven goal fails, the `Build` check turns red and the branch ruleset blocks the
+merge. `Build` is the status check required on `main`, together with 2 approvals.
+
+### Requerimientos
+
+- JDK **17** (Temurin or Oracle). JDK 25 does not compile the project: Lombok 1.18.36,
+  bundled with Spring Boot 3.4.1, does not support it.
+- Maven 3.8 or newer.
+- For a local SonarQube analysis: network access to the server and a personal analysis
+  token (SonarQube → My Account → Security → Generate Tokens, type *Project Analysis Token*).
+
+### Comandos en local
+
+```bash
+# Build, run the 45 tests and produce target/site/jacoco/jacoco.xml (what CI runs first)
+mvn -B verify
+```
+
+```powershell
+# Optional: run the same SonarQube analysis CI runs, against YOUR branch.
+# Never analyse from a laptop without -Dsonar.branch.name: the scanner would overwrite the
+# analysis of main.
+$env:SONAR_HOST_URL = "http://<sonar-host>:<port>"
+$env:SONAR_TOKEN = "<your personal analysis token>"
+mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:5.8.0.7211:sonar `
+  -Dsonar.projectKey=gestor-salon-eventos-backend `
+  -Dsonar.branch.name=$(git branch --show-current)
+```
+
+### Variables y secrets (sólo nombres, jamás commitear valores)
+
+| Name | Where it lives | Purpose |
+| :--- | :--- | :--- |
+| `SONAR_HOST_URL` | GitHub → Settings → Secrets and variables → Actions | Base URL of the SonarQube server |
+| `SONAR_TOKEN` | Same place | Project analysis token generated in SonarQube |
+| `GITHUB_TOKEN` | Provided automatically by GitHub Actions | Read access to the repository during the job |
+
+### SonarQube
+
+- Product: **SonarQube Server 9.9.8** (LTA 9.9), self-hosted instance managed by the team,
+  edition: Community Edition with the Community Branch Plugin (version in
+  `docs/avance-u1/capturas/u1-sonar-system_2.png`).
+- Project key: `gestor-salon-eventos-backend`. Pull requests are analysed in PR mode
+  (`sonar.pullrequest.key`, `.branch`, `.base`); pushes to `main` in branch mode
+  (`sonar.branch.name=main`).
+- Quality gate: `gestor-salon-sprint1`, recorded in
+  [ADR-0002](docs/adr/0002-sonarqube-quality-gate.md). Conditions on **new code** only:
+  coverage ≥ 50%, duplication ≤ 3%, ratings A for reliability, security and
+  maintainability, 100% of security hotspots reviewed. Overall coverage is reported but
+  not gated.
+- New code on `main` is measured against a fixed baseline analysis (2026-09-13); on a PR,
+  new code is the diff against `main`.
+- The gate is blocking: `-Dsonar.qualitygate.wait=true` makes the job wait for the result
+  and fail when the gate fails.
+
+### Evidencia
+
+- Sprint 1 (pipeline, PRs, gate): [`docs/evidence/sprint-01.md`](docs/evidence/sprint-01.md)
+- Unit 1 deliverable (controlled failure, traceability, limitations):
+  [`docs/avance-u1/evidencia.md`](docs/avance-u1/evidencia.md)
+
