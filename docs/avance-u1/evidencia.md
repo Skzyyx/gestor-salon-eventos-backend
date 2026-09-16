@@ -23,9 +23,11 @@ the quality gate. Nothing from those files is repeated here.
 - Repository: https://github.com/Skzyyx/gestor-salon-eventos-backend (public).
 - Workflow: [`.github/workflows/build.yml`](../../.github/workflows/build.yml). Job and required
   status check: `Build`.
-- Delivery commit: the squash commit of PR #12 on `main`. Its hash is reported in the
-  submission message because a file cannot contain its own hash. State of `main` before this
-  deliverable: `fe57fbe` (PR #10); after PR #11: `72dc3e4`.
+- Delivery commit: the squash commit of PR #13 on `main` (PR #12 delivered this report;
+  PR #13 only put the README headings in English so that the link in the table above
+  resolves). Its hash is reported in the submission message because a file cannot contain
+  its own hash. State of `main` before this deliverable: `fe57fbe` (PR #10); after PR #11:
+  `72dc3e4`; after PR #12: `ae4ac2e`.
 
 ## Flujo
 
