@@ -14,6 +14,7 @@ the quality gate. Nothing from those files is repeated here.
 | Technical decision         | "Decisión"                                                                                                                                                                                       |
 | Individual participation   | "Participación individual"                                                                                                                                                                       |
 | Traceability               | "Trazabilidad"                                                                                                                                                                                   |
+| SonarQube hosting          | "Servidor de SonarQube" (asked by the professor by message, not in the PDF)                                                                                                                      |
 
 ## Identificación
 
@@ -152,6 +153,33 @@ exist in `historial`; they are older analyses and are not mixed with this delive
 | José Eduardo Aguilar | Author of PR #11 (controlled failure and its fix, both commits); review of PR #12                                                     | `actions/setup-java@v4` (`java-version`, `distribution`) and `mvn -B verify` (Surefire, tests)                                         | Change `java-version` to 21 and predict the outcome                                                      |
 | Christopher Álvarez  | Author of this evidence report and PR #12 (screenshots, workflow comment); review of PR #11                                           | `actions/checkout@v4` with `fetch-depth: 0`, `actions/cache@v4` keys, `runs-on`                                                        | Remove `fetch-depth: 0` and explain the effect on new-code detection                                     |
 
+## Servidor de SonarQube
+
+Not part of the PDF: the professor asked for this by message on 11 September 2026, after the
+team told him the analysis would run on a self-hosted server instead of SonarQube Cloud, which
+the team had announced earlier. His answer was "Está perfecto, documéntenme nomás lo que
+hicieron" (`capturas/u1-profesor-sonar-server.png`; the screenshot attached to that message
+shows the first analysis on the new server, gate passed with 0.0% coverage).
+
+1. **SonarQube Cloud, tried first.** The repository was bound to a SonarQube Cloud
+   organization with automatic analysis, which needs no workflow file; no commit in the
+   repository ever referenced `sonarcloud.io`. The trace that survives is the
+   [`sonarqubecloud[bot]` comment on PR #1](https://github.com/Skzyyx/gestor-salon-eventos-backend/pull/1#issuecomment-5639060201)
+   (11 Sept, project key `Skzyyx_gestor-salon-eventos-backend`): quality gate passed, 0 new
+   issues, 0.0% coverage on new code. It was dropped because the free plan does not let the
+   organization edit the quality gate, and the team needed its own coverage threshold on new
+   code, the one later recorded in [ADR-0002](../adr/0002-sonarqube-quality-gate.md). The
+   Cloud project is no longer available: the `sonarcloud.io` links inside that comment
+   returned "not found" on 16 Sept.
+2. **Self-hosted server.** The only server available to the team is reachable through a
+   Pterodactyl panel, which cannot change kernel parameters on the host. The recent SonarQube
+   versions tried first need them for the embedded Elasticsearch, so they did not start;
+   SonarQube Server 9.9.8 (LTA 9.9) started and has run without problems since. Edition and
+   branch plugin: see "Limitaciones e IA".
+3. **First tests directly on `main`.** The first analyses on the new server were run from
+   `main` to learn the tool. That work is archived in the `historial` branch and was redone
+   through PRs during Sprint 1 ([Sprint 1 evidence](../evidence/sprint-01.md)).
+
 ## Limitaciones e IA
 
 - SonarQube Server 9.9.8 Community Edition with the Community Branch Plugin installed
@@ -160,7 +188,7 @@ exist in `historial`; they are older analyses and are not mixed with this delive
   pull requests; the plugin adds both, which is what makes `sonar.branch.name` and
   `sonar.pullrequest.*` work in the workflow. The plugin is community-maintained, not
   supported by SonarSource, so a server upgrade may break it; that risk is accepted for this
-  course.
+  course. Why this server and this version: "Servidor de SonarQube" above.
 - PR decoration on GitHub (a Sonar check and a summary comment on each PR) is supported by
   the plugin but is not configured. It would need a GitHub App owned by the repository owner
   with permissions Checks: write, Pull requests: write and Metadata: read, installed on the

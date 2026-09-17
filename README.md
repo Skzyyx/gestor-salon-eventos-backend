@@ -403,6 +403,11 @@ mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:5.8.0.7211:sonar 
   new code is the diff against `main`.
 - The gate is blocking: `-Dsonar.qualitygate.wait=true` makes the job wait for the result
   and fail when the gate fails.
+- Hosting: SonarQube Cloud was tried first (automatic analysis, `sonarqubecloud[bot]` comment
+  on PR #1) and dropped because its free plan does not allow editing the quality gate. The
+  self-hosted server runs 9.9.8 because newer versions need kernel parameters for
+  Elasticsearch that the hosting panel (Pterodactyl) cannot change. Details in
+  [`docs/avance-u1/evidencia.md`, "Servidor de SonarQube"](docs/avance-u1/evidencia.md#servidor-de-sonarqube).
 
 ### Evidence
 
