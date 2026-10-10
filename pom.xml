@@ -217,6 +217,41 @@
                     </excludes>
                 </configuration>
             </plugin>
+            <!-- Surefire corre las pruebas en la fase test. Por omisión, cero pruebas
+                 ejecutadas cuentan como éxito; con failIfNoTests un "verde" exige que
+                 de verdad haya corrido al menos una prueba. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <failIfNoTests>true</failIfNoTests>
+                </configuration>
+            </plugin>
+                        <!-- El proyecto solo compila y se prueba con JDK 17 a 23: con JDK 25,
+                 Lombok no genera código y Mockito (Byte Buddy) no puede crear mocks.
+                 Este plugin corta el build en la fase validate con un mensaje claro,
+                 en lugar de 19 errores de Mockito que no dicen la causa. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>require-supported-jdk</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireJavaVersion>
+                                    <version>[17,24)</version>
+                                    <message>Use JDK 17, the version CI uses (README, Requirements). JDK 24+ breaks Lombok and Mockito in this project.</message>
+                                </requireJavaVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
 
