@@ -12,6 +12,7 @@ import mx.gestorsalon.model.Usuario;
 import mx.gestorsalon.model.enums.Rol;
 import mx.gestorsalon.repository.NegocioRepository;
 import mx.gestorsalon.repository.UsuarioRepository;
+import mx.gestorsalon.util.SlugUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,9 +42,11 @@ public class AdminService {
     @Transactional
     public NegocioAdminResponse crearNegocioConAdmin(CrearNegocioRequest request) {
 
-        // 1. Normalizamos el slug igual que en tu NegocioService (minúsculas, sin
-        // símbolos raros)
-        String slug = request.getSlug().toLowerCase().replaceAll("[^a-z0-9]+", "-");
+        // 1. Normalizamos el slug: "Salón Las Palmas" -> "salon-las-palmas".
+        String slug = SlugUtils.normalizar(request.getSlug());
+        if (slug.isEmpty()) {
+            throw new IllegalArgumentException("El enlace público debe tener al menos una letra o un número");
+        }
 
         // 2. Validamos que no se repitan slug ni correo -> 409 CONFLICT si ya existen.
         // Reutilizamos tus métodos de repositorio findBySlug / findByCorreo.
