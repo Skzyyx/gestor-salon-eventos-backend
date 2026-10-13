@@ -12,6 +12,10 @@
 
 ## Contribuciones del equipo
 
+- **José Eduardo Aguilar:** slug defect at business creation found by `AdminServiceTest`
+  and fixed with `SlugUtils` (PR #16, red then green); the same defect when editing the
+  profile, red then green in the Avance 2 PR (#20), which he opened. Reviewed: #15, #17, #19.
+
 ## Mini Definition of Done
 
 ## Retro: Keep / Change / Next experiment
