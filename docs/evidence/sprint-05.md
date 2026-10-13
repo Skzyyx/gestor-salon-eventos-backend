@@ -16,9 +16,11 @@
   and fixed with `SlugUtils` (PR #16, red then green); the same defect when editing the
   profile, red then green in the Avance 2 PR (#20), which he opened. Reviewed: #15, #17, #19.
 
+- **Christopher Álvarez:** `TurnoServiceTest` and `ServicioServiceTest` (PR #17);
+  `PaqueteServiceTest` in the Avance 2 PR (#20), which he also reviews. Reviewed: #16, #18.
+
 ## Mini Definition of Done
 
 ## Retro: Keep / Change / Next experiment
 
 ## Uso de IA
-
