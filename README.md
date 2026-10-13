@@ -345,11 +345,11 @@ Antes de que aplique en el Sprint correspondiente, en las secciones de PR, pipel
 
 ## 🔁 Continuous integration and code quality
 
-Every push to `main` and every pull request targeting `main` runs the `Build` workflow
-([`.github/workflows/build.yml`](.github/workflows/build.yml)) on a GitHub-hosted
-`ubuntu-latest` runner. The job compiles the project, runs the test suite with JaCoCo
-coverage and sends the result to SonarQube, then waits for the quality gate. If the gate
-fails, the Maven goal fails, the `Build` check turns red and the branch ruleset blocks the
+Every push, on any branch, and every pull request targeting `main` runs the `CI` workflow
+([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) on a GitHub-hosted
+`ubuntu-latest` runner. Its `Build` job runs `mvn -B test` with JaCoCo coverage and, on pull
+requests and on `main`, sends the result to SonarQube and waits for the quality gate. If a
+test or the gate fails, the `Build` check turns red and the branch ruleset blocks the
 merge. `Build` is the status check required on `main`, together with 2 approvals.
 
 ### Requirements
@@ -363,7 +363,7 @@ merge. `Build` is the status check required on `main`, together with 2 approvals
 ### Local commands
 
 ```bash
-# Build, run the 45 tests and produce target/site/jacoco/jacoco.xml (what CI runs first)
+# Build, run the 116 tests and produce target/site/jacoco/jacoco.xml (what CI runs first)
 mvn -B verify
 ```
 

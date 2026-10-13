@@ -1,15 +1,15 @@
-name: Build
+name: CI
 
+# Every push, on any branch, and every pull request to main run the tests.
 on:
   push:
-    branches:
-      - main
   pull_request:
     branches:
       - main
 
 jobs:
   build:
+    # Keep this name: "Build" is the status check the main ruleset requires.
     name: Build
     runs-on: ubuntu-latest
 
@@ -41,7 +41,7 @@ jobs:
       # Phase 1: compile, run every test and write the JaCoCo report. If a test fails
       # the job stops here, so a red "Build and test" always means a broken test.
       - name: Build and test
-        run: mvn -B verify
+        run: mvn -B test jacoco:report
 
       # Runs even when the previous step failed: lists every failing test with its
       # expected and actual values on the run page.
@@ -61,8 +61,10 @@ jobs:
           retention-days: 14
 
       # Phase 2: analysis and quality gate on what phase 1 compiled. A red step here
-      # means the gate failed, not a test.
+      # means the gate failed, not a test. Only for pull requests and main: a push to a
+      # feature branch is already analysed by its pull request.
       - name: SonarQube analysis
+        if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
