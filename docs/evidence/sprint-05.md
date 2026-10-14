@@ -22,6 +22,10 @@
 - **Freddy Castro:** `RolNegocioServiceTest` and `ImageUploadServiceTest` (PR #18);
   `EquipoServiceTest` in the Avance 2 PR (#20), which he also reviews. Reviewed: #15, #17, #19.
 
+- **José Luis Islas:** test pipeline: separate test and analysis steps, test summary,
+  test reports artifact, `failIfNoTests` and the JDK check (PR #15); `ci.yml` on every push
+  (PR #[n]); `JwtServiceTest` in the Avance 2 PR (#[n]). Reviewed: #[n].
+
 ## Mini Definition of Done
 
 ## Retro: Keep / Change / Next experiment
