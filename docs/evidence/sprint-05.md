@@ -19,6 +19,9 @@
 - **Christopher Álvarez:** `TurnoServiceTest` and `ServicioServiceTest` (PR #17);
   `PaqueteServiceTest` in the Avance 2 PR (#20), which he also reviews. Reviewed: #16, #18.
 
+- **Freddy Castro:** `RolNegocioServiceTest` and `ImageUploadServiceTest` (PR #18);
+  `EquipoServiceTest` in the Avance 2 PR (#20), which he also reviews. Reviewed: #15, #17, #19.
+
 ## Mini Definition of Done
 
 ## Retro: Keep / Change / Next experiment
