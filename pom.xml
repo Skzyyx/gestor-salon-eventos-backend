@@ -222,6 +222,20 @@
                 </executions>
             </plugin>
 
+            <!-- Los yml con secretos de cada laptop están en .gitignore, pero Maven
+                 los copiaría al jar y terminarían publicados en Nexus. Se excluyen
+                 del jar; spring-boot:run los sigue leyendo desde target/classes. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>application-local.yml</exclude>
+                        <exclude>application-dev.yml</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
