@@ -19,6 +19,9 @@
   `0.1.0-SNAPSHOT` pushed to Nexus and run from the registry, in the Avance 3 PR (#21),
   which he also reviews.
 
+- **Freddy Castro:** Nexus smoke test; `ci.yml` step that builds the image tagged with the
+  commit SHA, in the Avance 3 PR (#21), which he also reviews.
+
 ## Mini Definition of Done
 
 ## Retro: Keep / Change / Next experiment
