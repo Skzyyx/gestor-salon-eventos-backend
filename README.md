@@ -343,6 +343,46 @@ Este repositorio es el proyecto del equipo para la materia de DevOps. La documen
 
 Antes de que aplique en el Sprint correspondiente, en las secciones de PR, pipeline, deployment o infraestructura se registra: `N/A — todavía no corresponde a este Sprint.`
 
+## 📦 Artifacts in Nexus
+
+Builds are published to the team's Nexus Repository, self-hosted on the same Pterodactyl
+panel as SonarQube. Version, artifact and image policy: [ADR-0003](docs/adr/0003-artifact-publishing.md).
+
+| Repository | Type | Used for |
+| :--- | :--- | :--- |
+| `maven-public` | group | Resolving every dependency (mirror in `settings.xml`) |
+| `maven-central` | proxy | Cache of Maven Central, reached through `maven-public` |
+| `maven-snapshots` | hosted | `X.Y.Z-SNAPSHOT`, published with `mvn deploy` from a laptop |
+| `maven-releases` | hosted | `X.Y.Z`, cut only from `main` (working agreement); redeploy disabled |
+| `docker-hosted` | hosted (Docker) | Images, see "Docker image" |
+
+Coordinates: `mx.gestorsalon:gestor-salon-eventos`.
+
+### Local setup
+
+Create `~/.m2/settings.xml` (never commit it) with a server and a mirror, both with the
+id `nexus`, the same id used in `<distributionManagement>`:
+
+```xml
+<settings>
+  <servers>
+    <server><id>nexus</id><username>YOUR_USER</username><password>YOUR_PASSWORD</password></server>
+  </servers>
+  <mirrors>
+    <mirror><id>nexus</id><mirrorOf>*</mirrorOf><url>http://<nexus-host>:<port>/repository/maven-public/</url></mirror>
+  </mirrors>
+</settings>
+```
+
+```bash
+mvn -B verify   # dependencies now come from Nexus
+mvn -B deploy   # publishes the current SNAPSHOT to maven-snapshots
+```
+
+`application-local.yml` and `application-dev.yml` are excluded from the jar by
+`maven-jar-plugin`, so a deploy from a laptop does not upload local secrets.
+Credentials never go in the repository: only in each member's `settings.xml`.
+
 ## 🔁 Continuous integration and code quality
 
 Every push, on any branch, and every pull request targeting `main` runs the `CI` workflow
