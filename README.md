@@ -383,6 +383,31 @@ mvn -B deploy   # publishes the current SNAPSHOT to maven-snapshots
 `maven-jar-plugin`, so a deploy from a laptop does not upload local secrets.
 Credentials never go in the repository: only in each member's `settings.xml`.
 
+## 🐳 Docker image
+
+Multi-stage build: stage 1 compiles with `maven:3.9-eclipse-temurin-17`, stage 2 runs the
+jar on `eclipse-temurin:17-jre-alpine` as a non-root user. Tests are skipped inside the
+build on purpose: CI runs them before the image is built.
+
+| Variant | Base of the final image | Size |
+| :--- | :--- | ---: |
+| Single stage (comparison only) | `maven:3.9-eclipse-temurin-17` | 1.13 GB |
+| Multi-stage (this Dockerfile) | `eclipse-temurin:17-jre-alpine` | 395 MB |
+
+```bash
+docker build -t gestor-salon-eventos:0.1.0-SNAPSHOT .   # tag = project version, never only latest
+cp .env.example .env    # fill in; .env is git-ignored
+docker run --rm --env-file .env -p 8080:8080 gestor-salon-eventos:0.1.0-SNAPSHOT
+```
+
+CI (`ci.yml`) builds the same image on every run, tagged with the commit SHA.
+
+Inside the container the `prod` profile is active, so every setting comes from the
+environment variables listed in `.env.example`. Images are published to the
+`docker-hosted` registry in Nexus (see "Artifacts in Nexus"). The registry speaks plain
+HTTP, so Docker must list it under `insecure-registries` (Docker Desktop → Settings →
+Docker Engine) before `docker login`.
+
 ## 🔁 Continuous integration and code quality
 
 Every push, on any branch, and every pull request targeting `main` runs the `CI` workflow
