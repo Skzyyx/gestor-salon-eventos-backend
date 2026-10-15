@@ -1,0 +1,15 @@
+# Only pom.xml and src/ are needed to build the image.
+.git
+.github
+.idea
+.vscode
+*.iml
+target
+docs
+*.md
+
+# Local secrets. They are in .gitignore, but docker build copies whatever is on disk:
+# without these lines they would end up inside the jar and the published image.
+src/main/resources/application-local.yml
+src/main/resources/application-dev.yml
+.env
