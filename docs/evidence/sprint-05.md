@@ -24,7 +24,7 @@
 
 - **José Luis Islas:** test pipeline: separate test and analysis steps, test summary,
   test reports artifact, `failIfNoTests` and the JDK check (PR #15); `ci.yml` on every push
-  (PR #[n]); `JwtServiceTest` in the Avance 2 PR (#[n]). Reviewed: #[n].
+  (PR #19); `JwtServiceTest` in the Avance 2 PR (#20). Reviewed: #16, #18.
 
 ## Mini Definition of Done
 
