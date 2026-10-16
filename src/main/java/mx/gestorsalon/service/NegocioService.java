@@ -9,6 +9,7 @@ import mx.gestorsalon.model.Direccion;
 import mx.gestorsalon.model.Negocio;
 import mx.gestorsalon.repository.NegocioRepository;
 import mx.gestorsalon.util.SecurityUtils;
+import mx.gestorsalon.util.SlugUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,14 +42,15 @@ public class NegocioService {
             negocio.setNombre(request.getNombre());
         }
 
-        // CU-04: el slug es la "dirección web pública". Validamos antes de guardar.
+        // CU-04: el slug es la "dirección web pública". Misma regla que al crear el
+        // negocio (AdminService): "Quinta Real Peñasco" -> "quinta-real-penasco".
         if (request.getSlug() != null && !request.getSlug().trim().isEmpty()) {
-            String nuevoSlug = request.getSlug().trim().toLowerCase();
+            String nuevoSlug = SlugUtils.normalizar(request.getSlug());
 
-            // FA-04.2: solo se permiten minúsculas, números y guiones
-            if (!nuevoSlug.matches("^[a-z0-9-]+$")) {
+            // FA-04.2: sin letras ni números no queda una dirección válida
+            if (nuevoSlug.isEmpty()) {
                 throw new IllegalArgumentException(
-                        "La dirección solo puede contener letras minúsculas, números y guiones");
+                        "El enlace público debe tener al menos una letra o un número");
             }
 
             // FA-04.1: el slug debe ser único en TODA la plataforma
