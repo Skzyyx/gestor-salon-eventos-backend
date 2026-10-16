@@ -21,7 +21,24 @@
         <java.version>17</java.version>
         <jjwt.version>0.12.6</jjwt.version>
         <springdoc.version>2.7.0</springdoc.version>
+        <!-- URL base de Nexus (no es secreta). Se puede cambiar con -Dnexus.url=... -->
+        <nexus.url>http://66.70.181.143:26668</nexus.url>
     </properties>
+
+    <!-- A dónde publica `mvn deploy`. Las credenciales NO van aquí:
+         viven en settings.xml bajo el mismo <id>nexus</id>. -->
+    <distributionManagement>
+        <repository>
+            <id>nexus</id>
+            <name>Nexus releases</name>
+            <url>${nexus.url}/repository/maven-releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>nexus</id>
+            <name>Nexus snapshots</name>
+            <url>${nexus.url}/repository/maven-snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
 
     <dependencies>
 
@@ -203,6 +220,20 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+
+            <!-- Los yml con secretos de cada laptop están en .gitignore, pero Maven
+                 los copiaría al jar y terminarían publicados en Nexus. Se excluyen
+                 del jar; spring-boot:run los sigue leyendo desde target/classes. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>application-local.yml</exclude>
+                        <exclude>application-dev.yml</exclude>
+                    </excludes>
+                </configuration>
             </plugin>
 
             <plugin>

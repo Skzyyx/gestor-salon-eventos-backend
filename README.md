@@ -343,6 +343,71 @@ Este repositorio es el proyecto del equipo para la materia de DevOps. La documen
 
 Antes de que aplique en el Sprint correspondiente, en las secciones de PR, pipeline, deployment o infraestructura se registra: `N/A — todavía no corresponde a este Sprint.`
 
+## 📦 Artifacts in Nexus
+
+Builds are published to the team's Nexus Repository, self-hosted on the same Pterodactyl
+panel as SonarQube. Version, artifact and image policy: [ADR-0003](docs/adr/0003-artifact-publishing.md).
+
+| Repository | Type | Used for |
+| :--- | :--- | :--- |
+| `maven-public` | group | Resolving every dependency (mirror in `settings.xml`) |
+| `maven-central` | proxy | Cache of Maven Central, reached through `maven-public` |
+| `maven-snapshots` | hosted | `X.Y.Z-SNAPSHOT`, published with `mvn deploy` from a laptop |
+| `maven-releases` | hosted | `X.Y.Z`, cut only from `main` (working agreement); redeploy disabled |
+| `docker-hosted` | hosted (Docker) | Images, see "Docker image" |
+
+Coordinates: `mx.gestorsalon:gestor-salon-eventos`.
+
+### Local setup
+
+Create `~/.m2/settings.xml` (never commit it) with a server and a mirror, both with the
+id `nexus`, the same id used in `<distributionManagement>`:
+
+```xml
+<settings>
+  <servers>
+    <server><id>nexus</id><username>YOUR_USER</username><password>YOUR_PASSWORD</password></server>
+  </servers>
+  <mirrors>
+    <mirror><id>nexus</id><mirrorOf>*</mirrorOf><url>http://<nexus-host>:<port>/repository/maven-public/</url></mirror>
+  </mirrors>
+</settings>
+```
+
+```bash
+mvn -B verify   # dependencies now come from Nexus
+mvn -B deploy   # publishes the current SNAPSHOT to maven-snapshots
+```
+
+`application-local.yml` and `application-dev.yml` are excluded from the jar by
+`maven-jar-plugin`, so a deploy from a laptop does not upload local secrets.
+Credentials never go in the repository: only in each member's `settings.xml`.
+
+## 🐳 Docker image
+
+Multi-stage build: stage 1 compiles with `maven:3.9-eclipse-temurin-17`, stage 2 runs the
+jar on `eclipse-temurin:17-jre-alpine` as a non-root user. Tests are skipped inside the
+build on purpose: CI runs them before the image is built.
+
+| Variant | Base of the final image | Size |
+| :--- | :--- | ---: |
+| Single stage (comparison only) | `maven:3.9-eclipse-temurin-17` | 1.13 GB |
+| Multi-stage (this Dockerfile) | `eclipse-temurin:17-jre-alpine` | 395 MB |
+
+```bash
+docker build -t gestor-salon-eventos:0.1.0-SNAPSHOT .   # tag = project version, never only latest
+cp .env.example .env    # fill in; .env is git-ignored
+docker run --rm --env-file .env -p 8080:8080 gestor-salon-eventos:0.1.0-SNAPSHOT
+```
+
+CI (`ci.yml`) builds the same image on every run, tagged with the commit SHA.
+
+Inside the container the `prod` profile is active, so every setting comes from the
+environment variables listed in `.env.example`. Images are published to the
+`docker-hosted` registry in Nexus (see "Artifacts in Nexus"). The registry speaks plain
+HTTP, so Docker must list it under `insecure-registries` (Docker Desktop → Settings →
+Docker Engine) before `docker login`.
+
 ## 🔁 Continuous integration and code quality
 
 Every push, on any branch, and every pull request targeting `main` runs the `CI` workflow
