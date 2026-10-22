@@ -3,6 +3,7 @@ package mx.gestorsalon.service;
 import mx.gestorsalon.dto.PaqueteDTO;
 import mx.gestorsalon.dto.PaqueteServicioDTO;
 import mx.gestorsalon.exception.AccesoDenegadoException;
+import mx.gestorsalon.exception.RecursoNoEncontradoException;
 import mx.gestorsalon.mapper.PaqueteMapper;
 import mx.gestorsalon.model.Negocio;
 import mx.gestorsalon.model.Paquete;
@@ -15,6 +16,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -26,10 +30,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -94,6 +101,27 @@ class PaqueteServiceTest {
         p.setNegocio(duenio);
         p.setNombre(NOMBRE);
         return p;
+    }
+
+    private static PaqueteServicio lineaGuardada(Paquete paquete, Servicio servicio, String precioUnitario) {
+        PaqueteServicio linea = new PaqueteServicio();
+        linea.setPaquete(paquete);
+        linea.setServicio(servicio);
+        linea.setPrecioUnitario(new BigDecimal(precioUnitario));
+        return linea;
+    }
+
+    /** Operación del servicio que recibe un id de paquete y debe validar que sea del negocio. */
+    @FunctionalInterface
+    private interface OperacionSobrePaquete {
+        void ejecutar(PaqueteService service, Negocio negocio, Long paqueteId);
+    }
+
+    static Stream<Arguments> operacionesSobreUnPaquete() {
+        return Stream.of(
+                Arguments.of("update",
+                        (OperacionSobrePaquete) (s, n, id) -> s.update(n, id, paquete("4500.00", linea(10L, 1)))),
+                Arguments.of("deactivate", (OperacionSobrePaquete) PaqueteService::deactivate));
     }
 
     @ParameterizedTest(name = "precio {0} se rechaza")
@@ -271,5 +299,172 @@ class PaqueteServiceTest {
         assertEquals(3, paquete.getItems().get(0).getCantidad());
         assertEquals(new BigDecimal("350.00"), paquete.getItems().get(0).getPrecioUnitario());
         assertEquals(new BigDecimal("1200.00"), paquete.getItems().get(1).getPrecioUnitario());
+    }
+
+    @Test
+    @DisplayName("getAllByNegocio usa la consulta con líneas y devuelve mapeados, en orden, los paquetes del negocio")
+    void getAllByNegocio_variosPaquetes_mapeaCadaUno() {
+        // Arrange
+        Paquete plata = paqueteExistente(5L, negocio);
+        Paquete oro = paqueteExistente(6L, negocio);
+        PaqueteDTO plataDto = new PaqueteDTO();
+        PaqueteDTO oroDto = new PaqueteDTO();
+        when(paqueteRepository.findByNegocioIdWithItems(1L)).thenReturn(List.of(plata, oro));
+        when(paqueteMapper.toDTO(plata)).thenReturn(plataDto);
+        when(paqueteMapper.toDTO(oro)).thenReturn(oroDto);
+
+        // Act
+        List<PaqueteDTO> resultado = paqueteService.getAllByNegocio(1L);
+
+        // Assert
+        assertEquals(2, resultado.size());
+        assertSame(plataDto, resultado.get(0));
+        assertSame(oroDto, resultado.get(1));
+    }
+
+    @ParameterizedTest(name = "activo actual {0}, en el DTO {1} -> queda {2}")
+    @DisplayName("update solo cambia el estado activo cuando el DTO lo trae; si viene nulo conserva el actual")
+    @CsvSource({
+            "true,  ,      true",
+            "false, ,      false",
+            "false, true,  true",
+            "true,  false, false"
+    })
+    void update_activoOpcional_soloCambiaSiVieneEnElDto(boolean activoActual, Boolean activoDto, boolean esperado) {
+        // Arrange
+        Paquete existente = paqueteExistente(5L, negocio);
+        existente.setActivo(activoActual);
+        PaqueteDTO dto = paquete("4500.00", linea(10L, 1));
+        dto.setActivo(activoDto);
+        when(paqueteRepository.findById(5L)).thenReturn(Optional.of(existente));
+        when(paqueteRepository.existsByNombreInNegocio(1L, NOMBRE, 5L)).thenReturn(false);
+        when(servicioRepository.findById(10L)).thenReturn(Optional.of(servicioExistente(10L, negocio, "350.00")));
+
+        // Act
+        paqueteService.update(negocio, 5L, dto);
+
+        // Assert
+        assertEquals(esperado, existente.getActivo());
+        verify(paqueteRepository).save(existente);
+    }
+
+    @Test
+    @DisplayName("deactivate hace baja lógica: marca el paquete inactivo, lo guarda y nunca lo borra")
+    void deactivate_paquetePropio_quedaInactivoSinBorrarse() {
+        // Arrange
+        Paquete propio = paqueteExistente(5L, negocio);
+        when(paqueteRepository.findById(5L)).thenReturn(Optional.of(propio));
+
+        // Act
+        paqueteService.deactivate(negocio, 5L);
+
+        // Assert
+        assertFalse(propio.getActivo());
+        assertEquals(NOMBRE, propio.getNombre());
+        verify(paqueteRepository).save(propio);
+        verify(paqueteRepository, never()).delete(any());
+        verifyNoInteractions(servicioRepository, paqueteMapper);
+    }
+
+    @Test
+    @DisplayName("deactivate rechaza desactivar el paquete de otro negocio y no lo guarda")
+    void deactivate_paqueteDeOtroNegocio_lanzaAccesoDenegado() {
+        // Arrange
+        Paquete ajeno = paqueteExistente(5L, negocioConId(2L));
+        when(paqueteRepository.findById(5L)).thenReturn(Optional.of(ajeno));
+
+        // Act
+        AccesoDenegadoException error = assertThrows(AccesoDenegadoException.class,
+                () -> paqueteService.deactivate(negocio, 5L));
+
+        // Assert
+        assertEquals("El paquete no pertenece a su negocio", error.getMessage());
+        assertTrue(ajeno.getActivo());
+        verify(paqueteRepository, never()).save(any());
+    }
+
+    @ParameterizedTest(name = "{0} de un id inexistente se rechaza")
+    @DisplayName("update y deactivate avisan cuando el paquete no existe y no guardan nada")
+    @MethodSource("operacionesSobreUnPaquete")
+    void updateYDeactivate_paqueteInexistente_lanzaRecursoNoEncontrado(String operacion,
+                                                                       OperacionSobrePaquete accion) {
+        // Arrange
+        when(paqueteRepository.findById(99L)).thenReturn(Optional.empty());
+
+        // Act
+        RecursoNoEncontradoException error = assertThrows(RecursoNoEncontradoException.class,
+                () -> accion.ejecutar(paqueteService, negocio, 99L));
+
+        // Assert
+        assertEquals("Paquete no encontrado", error.getMessage());
+        verify(paqueteRepository, never()).existsByNombreInNegocio(any(), any(), any());
+        verify(paqueteRepository, never()).save(any());
+        verifyNoInteractions(servicioRepository, paqueteMapper);
+    }
+
+    @ParameterizedTest(name = "cantidad {0} se guarda como 1")
+    @DisplayName("create normaliza a 1 la cantidad nula, cero o negativa de una línea")
+    @NullSource
+    @ValueSource(ints = {0, -1, -5})
+    void create_cantidadNoPositiva_seNormalizaAUno(Integer cantidad) {
+        // Arrange
+        PaqueteDTO dto = paquete("4500.00", linea(10L, cantidad));
+        Paquete entidad = new Paquete();
+        when(paqueteRepository.existsByNombreInNegocio(1L, NOMBRE, null)).thenReturn(false);
+        when(paqueteMapper.toEntity(dto)).thenReturn(entidad);
+        when(servicioRepository.findById(10L)).thenReturn(Optional.of(servicioExistente(10L, negocio, "350.00")));
+
+        // Act
+        paqueteService.create(negocio, dto);
+
+        // Assert
+        ArgumentCaptor<Paquete> guardado = ArgumentCaptor.forClass(Paquete.class);
+        verify(paqueteRepository).save(guardado.capture());
+        assertEquals(1, guardado.getValue().getItems().size());
+        assertEquals(1, guardado.getValue().getItems().get(0).getCantidad());
+    }
+
+    @Test
+    @DisplayName("create avisa cuando un servicio de las líneas no existe y no guarda el paquete")
+    void create_servicioInexistenteEnUnaLinea_lanzaRecursoNoEncontrado() {
+        // Arrange
+        PaqueteDTO dto = paquete("4500.00", linea(10L, 1), linea(99L, 1));
+        when(paqueteRepository.existsByNombreInNegocio(1L, NOMBRE, null)).thenReturn(false);
+        when(paqueteMapper.toEntity(dto)).thenReturn(new Paquete());
+        when(servicioRepository.findById(10L)).thenReturn(Optional.of(servicioExistente(10L, negocio, "350.00")));
+        when(servicioRepository.findById(99L)).thenReturn(Optional.empty());
+
+        // Act
+        RecursoNoEncontradoException error = assertThrows(RecursoNoEncontradoException.class,
+                () -> paqueteService.create(negocio, dto));
+
+        // Assert
+        assertEquals("Uno de los servicios seleccionados no existe", error.getMessage());
+        verify(paqueteRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("update tolera líneas previas repetidas del mismo servicio y conserva el primer precio congelado")
+    void update_lineasPreviasRepetidas_conservaElPrimerPrecioCongelado() {
+        // Arrange
+        Servicio banquete = servicioExistente(10L, negocio, "420.00");
+        Paquete existente = paqueteExistente(5L, negocio);
+        existente.getItems().add(lineaGuardada(existente, banquete, "350.00"));
+        existente.getItems().add(lineaGuardada(existente, banquete, "380.00"));
+        PaqueteDTO dto = paquete("4500.00", linea(10L, 2));
+        when(paqueteRepository.findById(5L)).thenReturn(Optional.of(existente));
+        when(paqueteRepository.existsByNombreInNegocio(1L, NOMBRE, 5L)).thenReturn(false);
+        when(servicioRepository.findById(10L)).thenReturn(Optional.of(banquete));
+
+        // Act
+        paqueteService.update(negocio, 5L, dto);
+
+        // Assert
+        verify(paqueteRepository).save(existente);
+        assertEquals(1, existente.getItems().size());
+        PaqueteServicio unica = existente.getItems().get(0);
+        assertSame(banquete, unica.getServicio());
+        assertEquals(2, unica.getCantidad());
+        assertEquals(new BigDecimal("350.00"), unica.getPrecioUnitario());
     }
 }
