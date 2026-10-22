@@ -26,6 +26,14 @@
   test reports artifact, `failIfNoTests` and the JDK check (PR #15); `ci.yml` on every push
   (PR #19); `JwtServiceTest` in the Avance 2 PR (#20). Reviewed: #16, #18.
 
+### Coverage round (review of PR #20)
+
+- **Jose Aguilar:** `ClienteServiceTest` and `CategoriaServiceTest` (services that had
+  no tests), `DayOfWeekConverterTest`, and more cases in `ServicioServiceTest`,
+  `TurnoServiceTest` and `PaqueteServiceTest`; the 80% coverage gate in `pom.xml` and
+  `ci.yml`, with a coverage summary on every run. Coverage after his turn: 81.6% of lines,
+  84.8% of branches.
+
 ## Mini Definition of Done
 
 ## Retro: Keep / Change / Next experiment
