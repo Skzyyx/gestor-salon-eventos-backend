@@ -18,8 +18,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -39,6 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -252,6 +255,110 @@ class EquipoServiceTest {
         // Assert
         assertEquals("No puedes editar tu propio rol.", error.getMessage());
         verifyNoInteractions(rolNegocioService);
+        verify(usuarioRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("actualizarTrabajador cambia nombre y rol del empleado tras validar el techo de privilegio, sin tocar su cuenta")
+    void actualizarTrabajador_datosValidos_actualizaNombreYRol() {
+        // Arrange
+        Usuario luis = empleado(20L, "Luis Pérez", rol(5L, "Recepcionista", Permiso.CLIENTE_VER, Permiso.TURNO_VER));
+        luis.setCorreo("luis.perez@laspalmas.mx");
+        RolNegocio coordinador = rol(7L, "Coordinador de eventos", Permiso.CLIENTE_VER, Permiso.TURNO_VER);
+        ActualizarTrabajadorRequest request = solicitudCambio("Luis Alberto Pérez", 7L);
+        when(usuarioRepository.findByIdAndNegocioId(20L, 1L)).thenReturn(Optional.of(luis));
+        when(rolNegocioService.obtenerPorIdYNegocio(7L, 1L)).thenReturn(coordinador);
+        when(usuarioRepository.save(luis)).thenReturn(luis);
+
+        // Act
+        TrabajadorResponse respuesta = equipoService.actualizarTrabajador(20L, actor, request);
+
+        // Assert
+        assertEquals("Luis Alberto Pérez", luis.getNombre());
+        assertSame(coordinador, luis.getRolNegocio());
+        assertEquals(Rol.EMPLEADO, luis.getRol());
+        assertSame(negocio, luis.getNegocio());
+        assertEquals("luis.perez@laspalmas.mx", luis.getCorreo());
+        assertTrue(luis.getActivo());
+        assertEquals(20L, respuesta.getId());
+        assertEquals("Luis Alberto Pérez", respuesta.getNombre());
+        assertEquals(7L, respuesta.getRol().getId());
+        assertEquals("Coordinador de eventos", respuesta.getRol().getNombre());
+        InOrder orden = inOrder(rolNegocioService, usuarioRepository);
+        orden.verify(rolNegocioService).validarTechoDePrivilegio(actor, coordinador.getPermisos());
+        orden.verify(usuarioRepository).save(luis);
+        verifyNoInteractions(passwordEncoder);
+    }
+
+    @ParameterizedTest(name = "cuenta {0}")
+    @DisplayName("actualizarTrabajador no edita cuentas que no son EMPLEADO (dueño o plataforma) desde el módulo de equipo")
+    @EnumSource(value = Rol.class, names = {"ADMIN", "SUPERADMIN"})
+    void actualizarTrabajador_cuentaQueNoEsEmpleado_lanzaExcepcion(Rol rolDeCuenta) {
+        // Arrange
+        Usuario ana = new Usuario();
+        ana.setId(2L);
+        ana.setNombre("Ana López");
+        ana.setRol(rolDeCuenta);
+        ana.setNegocio(negocio);
+        ActualizarTrabajadorRequest request = solicitudCambio("Ana Recepcionista", 5L);
+        when(usuarioRepository.findByIdAndNegocioId(2L, 1L)).thenReturn(Optional.of(ana));
+
+        // Act
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
+                () -> equipoService.actualizarTrabajador(2L, actor, request));
+
+        // Assert
+        assertEquals("Solo se puede gestionar usuarios con rol EMPLEADO a través de este módulo", error.getMessage());
+        assertEquals("Ana López", ana.getNombre());
+        assertNull(ana.getRolNegocio());
+        verifyNoInteractions(rolNegocioService);
+        verify(usuarioRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("actualizarTrabajador busca el rol solo dentro del negocio del actor: no asigna un rol de otro negocio")
+    void actualizarTrabajador_rolDeOtroNegocio_lanzaRecursoNoEncontrado() {
+        // Arrange
+        RolNegocio recepcionista = rol(5L, "Recepcionista", Permiso.CLIENTE_VER, Permiso.TURNO_VER);
+        Usuario luis = empleado(20L, "Luis Pérez", recepcionista);
+        ActualizarTrabajadorRequest request = solicitudCambio("Luis Alberto Pérez", 9L);
+        when(usuarioRepository.findByIdAndNegocioId(20L, 1L)).thenReturn(Optional.of(luis));
+        when(rolNegocioService.obtenerPorIdYNegocio(9L, 1L))
+                .thenThrow(new RecursoNoEncontradoException("Rol no encontrado en este negocio"));
+
+        // Act
+        RecursoNoEncontradoException error = assertThrows(RecursoNoEncontradoException.class,
+                () -> equipoService.actualizarTrabajador(20L, actor, request));
+
+        // Assert
+        assertEquals("Rol no encontrado en este negocio", error.getMessage());
+        assertEquals("Luis Pérez", luis.getNombre());
+        assertSame(recepcionista, luis.getRolNegocio());
+        verify(rolNegocioService, never()).validarTechoDePrivilegio(any(), any());
+        verify(usuarioRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("actualizarTrabajador no asigna un rol con permisos que el actor no tiene y deja al empleado como estaba")
+    void actualizarTrabajador_rolSobreElTechoDelActor_lanzaAccesoDenegado() {
+        // Arrange
+        RolNegocio recepcionista = rol(5L, "Recepcionista", Permiso.CLIENTE_VER, Permiso.TURNO_VER);
+        Usuario luis = empleado(20L, "Luis Pérez", recepcionista);
+        RolNegocio encargadoDeRoles = rol(6L, "Encargado de roles", Permiso.ROL_VER, Permiso.ROL_GESTIONAR);
+        ActualizarTrabajadorRequest request = solicitudCambio("Luis Alberto Pérez", 6L);
+        when(usuarioRepository.findByIdAndNegocioId(20L, 1L)).thenReturn(Optional.of(luis));
+        when(rolNegocioService.obtenerPorIdYNegocio(6L, 1L)).thenReturn(encargadoDeRoles);
+        doThrow(new AccesoDenegadoException("No puedes conceder permisos que no tienes: ROL_GESTIONAR"))
+                .when(rolNegocioService).validarTechoDePrivilegio(actor, encargadoDeRoles.getPermisos());
+
+        // Act
+        AccesoDenegadoException error = assertThrows(AccesoDenegadoException.class,
+                () -> equipoService.actualizarTrabajador(20L, actor, request));
+
+        // Assert
+        assertEquals("No puedes conceder permisos que no tienes: ROL_GESTIONAR", error.getMessage());
+        assertEquals("Luis Pérez", luis.getNombre());
+        assertSame(recepcionista, luis.getRolNegocio());
         verify(usuarioRepository, never()).save(any());
     }
 
