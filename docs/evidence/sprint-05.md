@@ -51,3 +51,5 @@
 ## Retro: Keep / Change / Next experiment
 
 ## Uso de IA
+
+Usamos Claude para redactar las guías, explicar código y conceptos, y las descripciones de los PRs; cada integrante programó, corrió y revisó lo suyo antes de subirlo.
