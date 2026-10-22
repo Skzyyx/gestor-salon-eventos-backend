@@ -38,16 +38,24 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      # Phase 1: compile, run every test and write the JaCoCo report. If a test fails
-      # the job stops here, so a red "Build and test" always means a broken test.
+      # Phase 1: compile, run every test, write the JaCoCo report and check the coverage
+      # gate (at least 80% of lines and branches, see "coverage-gate" in pom.xml). A red
+      # "Build and test" means a broken test or coverage below the minimum; the log and
+      # the summaries below say which.
       - name: Build and test
-        run: mvn -B test jacoco:report
+        run: mvn -B test jacoco:report jacoco:check@coverage-gate
 
       # Runs even when the previous step failed: lists every failing test with its
       # expected and actual values on the run page.
       - name: Test summary
         if: always()
         run: python3 .github/scripts/test-summary.py target/surefire-reports >> "$GITHUB_STEP_SUMMARY"
+
+      # Also runs when the previous steps failed: line, branch and instruction coverage
+      # against the 80% minimum, and the classes with the most uncovered lines.
+      - name: Coverage summary
+        if: always()
+        run: python3 .github/scripts/coverage-summary.py target/site/jacoco/jacoco.csv >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload test reports
         if: always()

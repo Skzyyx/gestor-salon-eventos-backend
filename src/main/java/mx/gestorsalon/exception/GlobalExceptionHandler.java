@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.lang.NonNull;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -67,6 +68,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccesoDenegadoException.class)
     public ResponseEntity<Map<String, String>> handleAccesoDenegado(AccesoDenegadoException ex) {
         return build(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
+
+    // -------------------- 403: @PreAuthorize negó el acceso (falta el permiso PERM_*) --------------------
+    // Sin esto, el catch-all de abajo atrapa la AccessDeniedException y responde 500.
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Map<String, String>> handleSinPermiso(AccessDeniedException ex) {
+        return build(HttpStatus.FORBIDDEN, "No tienes permiso para realizar esta acción");
     }
 
     // -------------------- 409: Unicidad (slug/correo ya en uso)
