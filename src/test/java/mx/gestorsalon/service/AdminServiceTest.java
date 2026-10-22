@@ -1,6 +1,7 @@
 package mx.gestorsalon.service;
 
 import mx.gestorsalon.dto.admin.CrearNegocioRequest;
+import mx.gestorsalon.dto.negocio.NegocioResponse;
 import mx.gestorsalon.exception.RecursoDuplicadoException;
 import mx.gestorsalon.mapper.NegocioMapper;
 import mx.gestorsalon.mapper.UsuarioMapper;
@@ -12,12 +13,16 @@ import mx.gestorsalon.repository.UsuarioRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -137,5 +142,31 @@ class AdminServiceTest {
         assertEquals(Rol.ADMIN, admin.getValue().getRol());
         assertEquals("salon-las-palmas", admin.getValue().getNegocio().getSlug());
         verify(rolNegocioService).sembrarPlantillasSiNoExisten(admin.getValue().getNegocio());
+    }
+
+    @ParameterizedTest(name = "{0} negocios en la plataforma -> {0} respuestas en el mismo orden")
+    @ValueSource(ints = {0, 1, 3})
+    @DisplayName("listarNegocios mapea cada negocio del repositorio, en orden y sin omitir ninguno")
+    void listarNegocios_negociosRegistrados_devuelveUnaRespuestaPorNegocio(int cantidad) {
+        // Arrange
+        List<Negocio> negocios = new ArrayList<>();
+        List<NegocioResponse> esperadas = new ArrayList<>();
+        for (long id = 1; id <= cantidad; id++) {
+            Negocio negocio = new Negocio();
+            negocio.setId(id);
+            negocio.setSlug("salon-" + id);
+            NegocioResponse respuesta = NegocioResponse.builder().id(id).slug("salon-" + id).build();
+            negocios.add(negocio);
+            esperadas.add(respuesta);
+            when(negocioMapper.toResponse(negocio)).thenReturn(respuesta);
+        }
+        when(negocioRepository.findAll()).thenReturn(negocios);
+
+        // Act
+        List<NegocioResponse> resultado = adminService.listarNegocios();
+
+        // Assert
+        assertEquals(esperadas, resultado);
+        verifyNoInteractions(usuarioRepository, rolNegocioService, passwordEncoder);
     }
 }
