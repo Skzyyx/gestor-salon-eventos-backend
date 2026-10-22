@@ -34,6 +34,12 @@
   `ci.yml`, with a coverage summary on every run. Coverage after his turn: 81.6% of lines,
   84.8% of branches.
 
+- **Christopher Álvarez:** `@WebMvcTest` tests with the real security configuration for the
+  catalog, auth, admin, business and image endpoints, and `GlobalExceptionHandlerTest`; they
+  found that a missing permission answered 500 instead of 403, fixed in
+  `GlobalExceptionHandler` (red then green); more cases in `NegocioServiceTest` and
+  `AdminServiceTest`. Coverage after his turn: 90.3% of lines, 91.1% of branches.
+
 ## Mini Definition of Done
 
 ## Retro: Keep / Change / Next experiment
