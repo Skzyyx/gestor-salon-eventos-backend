@@ -68,6 +68,17 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
+      # Avance 3: build the image on every run, tagged with the commit SHA, so each image
+      # points to exactly one commit. On a pull request GITHUB_SHA is a temporary merge
+      # commit, so the head commit of the branch is used instead. The image is not pushed:
+      # Nexus credentials only live in each member's settings.xml and docker login.
+      - name: Build Docker image
+        env:
+          COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          docker build -t "gestor-salon-eventos:${COMMIT_SHA}" .
+          docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}" gestor-salon-eventos
+
       # Phase 2: analysis and quality gate on what phase 1 compiled. A red step here
       # means the gate failed, not a test. Only for pull requests and main: a push to a
       # feature branch is already analysed by its pull request.
