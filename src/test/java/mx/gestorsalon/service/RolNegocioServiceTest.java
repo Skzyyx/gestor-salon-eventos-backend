@@ -13,6 +13,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
@@ -28,6 +29,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -36,6 +38,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -134,6 +137,72 @@ class RolNegocioServiceTest {
 
         // Act + Assert
         assertThrows(RecursoNoEncontradoException.class, () -> rolNegocioService.obtenerPorIdYNegocio(3L, 1L));
+    }
+
+    @Test
+    @DisplayName("obtenerRolesPorNegocio devuelve únicamente los roles que el repositorio tiene para ese negocio")
+    void obtenerRolesPorNegocio_negocioConRoles_devuelveSusRoles() {
+        // Arrange
+        RolNegocio gerente = new RolNegocio();
+        gerente.setNombre("Gerente");
+        RolNegocio recepcionista = new RolNegocio();
+        recepcionista.setNombre("Recepcionista");
+        when(rolNegocioRepository.findByNegocioId(1L)).thenReturn(List.of(gerente, recepcionista));
+
+        // Act
+        List<RolNegocio> roles = rolNegocioService.obtenerRolesPorNegocio(1L);
+
+        // Assert
+        assertEquals(List.of("Gerente", "Recepcionista"), roles.stream().map(RolNegocio::getNombre).toList());
+        verify(rolNegocioRepository).findByNegocioId(1L);
+        verifyNoMoreInteractions(rolNegocioRepository);
+    }
+
+    @Test
+    @DisplayName("obtenerRolesPorNegocio devuelve una lista vacía para un negocio sin roles")
+    void obtenerRolesPorNegocio_negocioSinRoles_devuelveListaVacia() {
+        // Arrange
+        when(rolNegocioRepository.findByNegocioId(2L)).thenReturn(List.of());
+
+        // Act
+        List<RolNegocio> roles = rolNegocioService.obtenerRolesPorNegocio(2L);
+
+        // Assert
+        assertTrue(roles.isEmpty());
+    }
+
+    @Test
+    @DisplayName("obtenerPorIdYNegocio devuelve el rol cuando pertenece al negocio pedido")
+    void obtenerPorIdYNegocio_rolDelNegocio_devuelveElRol() {
+        // Arrange
+        RolNegocio recepcionista = new RolNegocio();
+        recepcionista.setId(3L);
+        recepcionista.setNombre("Recepcionista");
+        when(rolNegocioRepository.findByIdAndNegocioId(3L, 1L)).thenReturn(Optional.of(recepcionista));
+
+        // Act
+        RolNegocio rol = rolNegocioService.obtenerPorIdYNegocio(3L, 1L);
+
+        // Assert
+        assertSame(recepcionista, rol);
+        verify(rolNegocioRepository).findByIdAndNegocioId(3L, 1L);
+        verifyNoMoreInteractions(rolNegocioRepository);
+    }
+
+    @ParameterizedTest(name = "rol {0} en negocio {1}")
+    @DisplayName("obtenerPorIdYNegocio responde 'Rol no encontrado en este negocio' si el rol no existe o es de otro negocio")
+    @CsvSource({"3, 2", "999, 1"})
+    void obtenerPorIdYNegocio_rolInexistenteOAjeno_lanzaConMensaje(Long rolId, Long negocioId) {
+        // Arrange
+        when(rolNegocioRepository.findByIdAndNegocioId(rolId, negocioId)).thenReturn(Optional.empty());
+
+        // Act
+        RecursoNoEncontradoException error = assertThrows(RecursoNoEncontradoException.class,
+                () -> rolNegocioService.obtenerPorIdYNegocio(rolId, negocioId));
+
+        // Assert
+        assertEquals("Rol no encontrado en este negocio", error.getMessage());
+        verify(rolNegocioRepository, never()).findById(any());
     }
 
     @Test

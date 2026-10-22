@@ -12,14 +12,18 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -73,6 +77,18 @@ class TurnoServiceTest {
         t.setId(id);
         t.setNegocio(duenio);
         return t;
+    }
+
+    /** Operación del servicio que recibe un id de turno y debe validar que sea del negocio. */
+    @FunctionalInterface
+    private interface OperacionSobreTurno {
+        void ejecutar(TurnoService service, Negocio negocio, Long turnoId);
+    }
+
+    static Stream<Arguments> operacionesSobreUnTurno() {
+        return Stream.of(
+                Arguments.of("update", (OperacionSobreTurno) (s, n, id) -> s.update(n, id, turno(CATORCE, DIECIOCHO))),
+                Arguments.of("delete", (OperacionSobreTurno) TurnoService::delete));
     }
 
     @ParameterizedTest(name = "{0} a {1} se acepta")
@@ -170,5 +186,104 @@ class TurnoServiceTest {
         // Act + Assert
         assertThrows(RecursoNoEncontradoException.class, () -> turnoService.delete(negocio, 99L));
         verify(turnoRepository, never()).delete(any());
+    }
+
+    @Test
+    @DisplayName("getAllByNegocio devuelve mapeados, en orden, todos los turnos del negocio")
+    void getAllByNegocio_variosTurnos_mapeaCadaUno() {
+        // Arrange
+        Turno tarde = turnoExistente(10L, negocio);
+        Turno noche = turnoExistente(11L, negocio);
+        TurnoDTO tardeDto = new TurnoDTO();
+        TurnoDTO nocheDto = new TurnoDTO();
+        when(turnoRepository.findByNegocioId(1L)).thenReturn(List.of(tarde, noche));
+        when(turnoMapper.toDTO(tarde)).thenReturn(tardeDto);
+        when(turnoMapper.toDTO(noche)).thenReturn(nocheDto);
+
+        // Act
+        List<TurnoDTO> resultado = turnoService.getAllByNegocio(1L);
+
+        // Assert
+        assertEquals(2, resultado.size());
+        assertSame(tardeDto, resultado.get(0));
+        assertSame(nocheDto, resultado.get(1));
+    }
+
+    @ParameterizedTest(name = "{0} de un id inexistente se rechaza")
+    @DisplayName("update y delete avisan cuando el turno no existe, sin validar horarios ni escribir en la base")
+    @MethodSource("operacionesSobreUnTurno")
+    void updateYDelete_turnoInexistente_lanzaRecursoNoEncontrado(String operacion, OperacionSobreTurno accion) {
+        // Arrange
+        when(turnoRepository.findById(99L)).thenReturn(Optional.empty());
+
+        // Act
+        RecursoNoEncontradoException error = assertThrows(RecursoNoEncontradoException.class,
+                () -> accion.ejecutar(turnoService, negocio, 99L));
+
+        // Assert
+        assertEquals("Turno no encontrado", error.getMessage());
+        verify(turnoRepository, never()).existsOverlapping(any(), any(), any(), any(), any());
+        verify(turnoRepository, never()).save(any());
+        verify(turnoRepository, never()).delete(any());
+        verifyNoInteractions(turnoMapper);
+    }
+
+    @ParameterizedTest(name = "activo actual {0}, en el DTO {1} -> queda {2}")
+    @DisplayName("update deja el turno activo si el DTO no indica estado y respeta true/false explícitos")
+    @CsvSource({
+            "false, ,      true",
+            "true,  ,      true",
+            "true,  false, false",
+            "false, true,  true"
+    })
+    void update_activoOpcional_nuloLoDejaActivo(boolean activoActual, Boolean activoDto, boolean esperado) {
+        // Arrange
+        Turno existente = turnoExistente(10L, negocio);
+        existente.setActivo(activoActual);
+        TurnoDTO dto = turno(CATORCE, DIECIOCHO);
+        dto.setActivo(activoDto);
+        when(turnoRepository.findById(10L)).thenReturn(Optional.of(existente));
+        when(turnoRepository.existsOverlapping(1L, SABADO, CATORCE, DIECIOCHO, 10L)).thenReturn(false);
+
+        // Act
+        turnoService.update(negocio, 10L, dto);
+
+        // Assert
+        assertEquals(esperado, existente.getActivo());
+        assertEquals(SABADO, existente.getDiaSemana());
+        assertEquals("TARDE", existente.getTipoTurno());
+        assertEquals(DIECIOCHO, existente.getHoraFin());
+        verify(turnoRepository).save(existente);
+    }
+
+    @Test
+    @DisplayName("delete elimina físicamente el turno propio")
+    void delete_turnoPropio_seEliminaDelRepositorio() {
+        // Arrange
+        Turno propio = turnoExistente(10L, negocio);
+        when(turnoRepository.findById(10L)).thenReturn(Optional.of(propio));
+
+        // Act
+        turnoService.delete(negocio, 10L);
+
+        // Assert
+        verify(turnoRepository).delete(propio);
+        verify(turnoRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("delete rechaza borrar el turno de otro negocio y no borra nada")
+    void delete_turnoDeOtroNegocio_lanzaAccesoDenegado() {
+        // Arrange
+        when(turnoRepository.findById(10L)).thenReturn(Optional.of(turnoExistente(10L, negocioConId(2L))));
+
+        // Act
+        AccesoDenegadoException error = assertThrows(AccesoDenegadoException.class,
+                () -> turnoService.delete(negocio, 10L));
+
+        // Assert
+        assertEquals("El turno no pertenece a su negocio", error.getMessage());
+        verify(turnoRepository, never()).delete(any());
+        verify(turnoRepository, never()).deleteById(any());
     }
 }

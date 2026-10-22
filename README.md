@@ -412,10 +412,13 @@ Docker Engine) before `docker login`.
 
 Every push, on any branch, and every pull request targeting `main` runs the `CI` workflow
 ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) on a GitHub-hosted
-`ubuntu-latest` runner. Its `Build` job runs `mvn -B test` with JaCoCo coverage and, on pull
-requests and on `main`, sends the result to SonarQube and waits for the quality gate. If a
-test or the gate fails, the `Build` check turns red and the branch ruleset blocks the
-merge. `Build` is the status check required on `main`, together with 2 approvals.
+`ubuntu-latest` runner. Its `Build` job runs `mvn -B test` with JaCoCo coverage, fails when
+the tests cover less than 80% of the lines or of the branches (the `coverage-gate`
+execution in `pom.xml`) and, on pull requests and on `main`, sends the result to SonarQube
+and waits for the quality gate. The run page shows a test summary and a coverage summary.
+If a test, the coverage gate or the quality gate fails, the `Build` check turns red and the
+branch ruleset blocks the merge. `Build` is the status check required on `main`, together
+with 2 approvals.
 
 ### Requirements
 
@@ -428,7 +431,7 @@ merge. `Build` is the status check required on `main`, together with 2 approvals
 ### Local commands
 
 ```bash
-# Build, run the 116 tests and produce target/site/jacoco/jacoco.xml (what CI runs first)
+# Build, run every test, produce target/site/jacoco/jacoco.xml and check the 80% coverage gate
 mvn -B verify
 ```
 
@@ -462,8 +465,9 @@ mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:5.8.0.7211:sonar 
 - Quality gate: `gestor-salon-sprint1`, recorded in
   [ADR-0002](docs/adr/0002-sonarqube-quality-gate.md). Conditions on **new code** only:
   coverage ≥ 50%, duplication ≤ 3%, ratings A for reliability, security and
-  maintainability, 100% of security hotspots reviewed. Overall coverage is reported but
-  not gated.
+  maintainability, 100% of security hotspots reviewed. Overall coverage is not a Sonar
+  condition: the build itself requires at least 80% of lines and branches with JaCoCo
+  (`coverage-gate` in `pom.xml`).
 - New code on `main` is measured against a fixed baseline analysis (2026-09-13); on a PR,
   new code is the diff against `main`.
 - The gate is blocking: `-Dsonar.qualitygate.wait=true` makes the job wait for the result
