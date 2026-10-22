@@ -40,6 +40,12 @@
   `GlobalExceptionHandler` (red then green); more cases in `NegocioServiceTest` and
   `AdminServiceTest`. Coverage after his turn: 90.3% of lines, 91.1% of branches.
 
+- **Freddy Castro:** `JwtAuthenticationFilterTest`, `CustomUserDetailsTest`,
+  `CustomUserDetailsServiceTest`, `SecurityUtilsTest`, `AuthServiceTest` and
+  `EquipoControllerTest` (team and role endpoints with real authorities); more cases in
+  `EquipoServiceTest` and `RolNegocioServiceTest`. Final suite: 454 tests, 99.5% of lines,
+  98.2% of branches.
+
 ## Mini Definition of Done
 
 ## Retro: Keep / Change / Next experiment
