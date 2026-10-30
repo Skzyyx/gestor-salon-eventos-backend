@@ -1,8 +1,9 @@
 import axios from 'axios';
 
-// Creamos una instancia de Axios apuntando al puerto donde vive Spring Boot
+// Creamos una instancia de Axios apuntando al backend. La URL viene de VITE_API_URL
+// (frontend/.env, ver .env.example); sin ella, el backend local de siempre.
 const api = axios.create({
-    baseURL: 'http://localhost:8080/api/v1',
+    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1',
 });
 
 // EL INTERCEPTOR: Se ejecuta ANTES de que cualquier petición salga de React
