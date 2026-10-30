@@ -1,0 +1,24 @@
+{
+  // Configuración de TypeScript para adopción INCREMENTAL en un proyecto Vite + React.
+  // JS y TS conviven: tu código .jsx actual sigue funcionando exactamente igual.
+  "compilerOptions": {
+    /* --- Entorno y "salida" --- */
+    "target": "ES2022",                        // a qué nivel de JS apunta (features modernas permitidas)
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],  // APIs disponibles: JS moderno + las del navegador
+    "module": "ESNext",
+    "moduleResolution": "bundler",             // cómo resolver imports: el modo correcto cuando Vite hace el bundle
+    "jsx": "react-jsx",                         // JSX de React 17+ (no hace falta importar React en cada archivo)
+    "noEmit": true,                             // TS NO genera archivos; SOLO revisa tipos. El build lo hace Vite.
+    "resolveJsonModule": true,                  // permite importar archivos .json
+    "isolatedModules": true,                    // cada archivo se transpila por separado (requisito de Vite/esbuild)
+    "skipLibCheck": true,                        // no re-chequea los tipos dentro de node_modules (build más rápido)
+
+    /* --- Adopción incremental (la clave para no romper tu JS) --- */
+    "allowJs": true,                            // deja importar y usar tus archivos .js / .jsx
+    "checkJs": false,                           // pero NO les revisa tipos: cero ruido sobre el código viejo
+
+    /* --- Rigor real (aplica SOLO a archivos .ts / .tsx) --- */
+    "strict": true                              // la red de seguridad de verdad: null-checks, no-implicit-any, etc.
+  },
+  "include": ["src"]
+}
