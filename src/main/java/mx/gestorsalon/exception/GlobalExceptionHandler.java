@@ -9,6 +9,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Map;
@@ -82,6 +83,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RecursoDuplicadoException.class)
     public ResponseEntity<Map<String, String>> handleDuplicado(RecursoDuplicadoException ex) {
         return build(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    // -------------------- 413: Archivo más pesado que el límite
+    // --------------------
+    // Spring la lanza antes de llegar al controlador cuando el archivo pasa de
+    // spring.servlet.multipart.max-file-size (4 MB). Sin esto, el catch-all respondía 500.
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<Map<String, String>> handleArchivoMuyGrande(MaxUploadSizeExceededException ex) {
+        return build(HttpStatus.PAYLOAD_TOO_LARGE, "La imagen pesa más de 4 MB");
     }
 
     // -------------------- Respeta el status que viaja DENTRO de la excepción

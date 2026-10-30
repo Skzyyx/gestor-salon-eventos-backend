@@ -17,6 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -128,5 +129,21 @@ class ImageUploadServiceTest {
         // Assert
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, error.getStatusCode());
         assertEquals("Error al procesar la imagen", error.getReason());
+    }
+
+    @Test
+    @DisplayName("uploadImage responde 413 si la imagen pasa de 4 MB, sin llamar a Cloudinary")
+    void uploadImage_masDe4MB_lanza413() {
+        // Arrange
+        MockMultipartFile grande = archivo(Arrays.copyOf(PNG, (int) ImageValidator.MAX_BYTES + 1));
+
+        // Act
+        ResponseStatusException error = assertThrows(ResponseStatusException.class,
+                () -> imageUploadService.uploadImage(grande));
+
+        // Assert
+        assertEquals(HttpStatus.PAYLOAD_TOO_LARGE, error.getStatusCode());
+        assertEquals("La imagen pesa más de 4 MB", error.getReason());
+        verifyNoInteractions(cloudinary);
     }
 }
