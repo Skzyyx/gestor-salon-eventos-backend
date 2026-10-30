@@ -1,16 +1,35 @@
-# React + Vite
+# Frontend: Gestor de Salones de Eventos
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React 19, Vite 8 and TypeScript, managed with pnpm. It talks to the backend at the root of
+this repository. Why both live here: [ADR-0004](../docs/adr/0004-frontend-in-this-repository.md).
 
-Currently, two official plugins are available:
+## Run it locally
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Requirements: Node 24 and pnpm.
 
-## React Compiler
+```bash
+cd frontend
+cp .env.example .env    # .env is git-ignored
+pnpm install
+pnpm dev                # http://localhost:5173
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Start the backend first (`mvn spring-boot:run` from the repository root). It accepts browser
+requests from `http://localhost:5173`.
 
-## Expanding the ESLint configuration
+## Checks
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+pnpm lint
+pnpm typecheck
+pnpm build
+```
+
+## Environment variables
+
+| Name | Default | Purpose |
+| :--- | :--- | :--- |
+| `VITE_API_URL` | `http://localhost:8080/api/v1` | Base URL of the backend API |
+
+Everything that starts with `VITE_` ends up in the JavaScript the browser downloads: never
+put a secret in these variables.

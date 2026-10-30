@@ -60,6 +60,7 @@ Los empleados no reciben permisos arbitrarios; se configuran mediante roles de n
 gestor-salon-eventos-backend/
 ├── pom.xml                               # Dependencias Maven y configuración de plugins
 ├── .gitignore                            # Exclusiones de Git (Maven, IDEs, secretos)
+├── frontend/                             # Frontend React + Vite (ver frontend/README.md)
 └── src/
     ├── main/
     │   ├── java/mx/gestorsalon/
@@ -92,6 +93,7 @@ text---
 - **Maven:** Versión 3.8 o superior (o el Maven embebido en tu IDE favorito).
 - **Base de Datos:** Instancia MySQL 8 accesible o servicio en la nube (Aiven, PlanetScale, etc.).
 - **Cuenta Cloudinary:** Para almacenamiento de imágenes y logotipos de los salones.
+- **Node.js 24 y pnpm:** solo para el frontend (carpeta `frontend/`).
 
 ---
 
@@ -330,6 +332,23 @@ mvn clean test
 ```
 
 bash---
+
+## 🖥️ Frontend
+
+The frontend (React 19, Vite 8 and TypeScript, with pnpm) lives in [`frontend/`](frontend/).
+With the backend running on `http://localhost:8080`:
+
+```bash
+cd frontend
+cp .env.example .env   # .env is git-ignored
+pnpm install
+pnpm dev               # http://localhost:5173
+```
+
+Variables and checks: [`frontend/README.md`](frontend/README.md). Why it lives in this
+repository: [ADR-0004](docs/adr/0004-frontend-in-this-repository.md).
+
+---
 
 ## 📋 Documentación del Curso (DevOps)
 
