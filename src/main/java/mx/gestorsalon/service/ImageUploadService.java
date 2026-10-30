@@ -1,10 +1,8 @@
 package mx.gestorsalon.service;
 
 import com.cloudinary.Cloudinary;
-import com.cloudinary.utils.ObjectUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tika.Tika;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,25 +18,15 @@ import java.util.UUID;
 public class ImageUploadService {
 
     private final Cloudinary cloudinary;
-    private final Tika tika = new Tika();
+    private final ImageValidator imageValidator = new ImageValidator();
 
     public String uploadImage(MultipartFile file) {
-        if (file.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El archivo está vacío");
-        }
-
         try {
-            // OWASP: Validar Magic Bytes con Apache Tika
-            // Esto lee la cabecera real del archivo, ignorando la extensión (.jpg, .exe, etc)
-            String mimeType = tika.detect(file.getInputStream());
-            if (!mimeType.startsWith("image/")) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El archivo malicioso bloqueado. Tipo detectado: " + mimeType);
-            }
+            byte[] contenido = file.getBytes();
 
-            // Restricción estricta de formatos permitidos
-            if (!mimeType.equals("image/jpeg") && !mimeType.equals("image/png") && !mimeType.equals("image/webp")) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Solo se permiten imágenes JPEG, PNG o WEBP.");
-            }
+            // OWASP: tipo real por magic bytes (Apache Tika), solo JPEG, PNG o WEBP y hasta 4 MB.
+            // La regla vive en ImageValidator, sin Spring, para que la Lambda de imágenes la reutilice.
+            validar(contenido);
 
             // OWASP: Generar un nombre seguro y aleatorio para evitar sobreescrituras accidentales o inyección
             String safeFileName = UUID.randomUUID().toString();
@@ -51,14 +39,26 @@ public class ImageUploadService {
             );
 
             // Subir archivo a Cloudinary
-            Map<?, ?> uploadResult = cloudinary.uploader().upload(file.getBytes(), params);
-            
+            Map<?, ?> uploadResult = cloudinary.uploader().upload(contenido, params);
+
             // Retornar la URL segura (https) provista por Cloudinary
             return uploadResult.get("secure_url").toString();
 
         } catch (IOException e) {
             log.error("Error al subir imagen a Cloudinary", e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al procesar la imagen");
+        }
+    }
+
+    // Traduce el rechazo al código HTTP del endpoint: 413 si pesa de más, 400 en los demás casos.
+    private void validar(byte[] contenido) {
+        try {
+            imageValidator.validar(contenido);
+        } catch (ImageValidator.ImagenRechazadaException e) {
+            HttpStatus estado = e.getMotivo() == ImageValidator.Motivo.DEMASIADO_GRANDE
+                    ? HttpStatus.PAYLOAD_TOO_LARGE
+                    : HttpStatus.BAD_REQUEST;
+            throw new ResponseStatusException(estado, e.getMessage());
         }
     }
 }
