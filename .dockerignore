@@ -8,6 +8,12 @@ target
 docs
 *.md
 
+# Not part of the backend image: they have their own builds (and frontend/node_modules
+# alone can weigh hundreds of MB).
+frontend
+lambdas
+infra
+
 # Local secrets. They are in .gitignore, but docker build copies whatever is on disk:
 # without these lines they would end up inside the jar and the published image.
 src/main/resources/application-local.yml
