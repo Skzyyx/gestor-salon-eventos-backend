@@ -22,9 +22,11 @@ spring:
       write-dates-as-timestamps: false
 
   # Configuración de Archivos
+  # 4 MB por archivo: el mismo límite que el frontend y que la Lambda de imágenes, que recibe
+  # hasta 6 MB por llamada con el archivo en base64. La petición completa puede pesar un poco más.
   servlet:
     multipart:
-      max-file-size: 5MB
+      max-file-size: 4MB
       max-request-size: 5MB
 
 server:

@@ -23,6 +23,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.method.annotation.ExceptionHandlerMethodResolver;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.lang.reflect.InvocationTargetException;
@@ -83,7 +84,10 @@ class GlobalExceptionHandlerTest {
                 arguments(new AccessDeniedException("Access Denied"),
                         HttpStatus.FORBIDDEN, MENSAJE_SIN_PERMISO),
                 arguments(new AuthorizationDeniedException("Access Denied", new AuthorizationDecision(false)),
-                        HttpStatus.FORBIDDEN, MENSAJE_SIN_PERMISO));
+                        HttpStatus.FORBIDDEN, MENSAJE_SIN_PERMISO),
+                // El archivo pasa de spring.servlet.multipart.max-file-size: 413, no 500.
+                arguments(new MaxUploadSizeExceededException(4L * 1024 * 1024),
+                        HttpStatus.PAYLOAD_TOO_LARGE, "La imagen pesa más de 4 MB"));
     }
 
     @ParameterizedTest(name = "{0} -> {1}")

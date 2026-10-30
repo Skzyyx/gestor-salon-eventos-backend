@@ -298,7 +298,7 @@ La URL base de todos los endpoints es: `http://localhost:8080/api/v1`
 
 | Método  | Endpoint           | Permiso requerido | Descripción                                                                                    |
 | :------- | :----------------- | :---------------- | :---------------------------------------------------------------------------------------------- |
-| `POST` | `/images/upload` | Autenticado       | Recibe un archivo `multipart/form-data` ("file"), valida formato y lo almacena en Cloudinary. |
+| `POST` | `/images/upload` | Autenticado       | Recibe un archivo `multipart/form-data` ("file"), valida por su contenido que sea JPG, PNG o WEBP de hasta 4 MB (413 si pesa más) y lo almacena en Cloudinary. |
 
 ---
 
