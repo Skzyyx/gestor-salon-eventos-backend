@@ -199,11 +199,19 @@ bash#### Desde tu IDE (IntelliJ IDEA, VS Code, Eclipse):
 
 ## 🔑 Usuario Inicial (Bootstrap de la Plataforma)
 
-Al arrancar la aplicación por primera vez, Flyway ejecuta automáticamente la migración `V6__seed_superadmin.sql` creando el primer usuario administrador de la plataforma:
+Al arrancar la aplicación por primera vez, Flyway ejecuta automáticamente la migración `V6__seed_superadmin.sql`, que crea el primer usuario administrador de la plataforma, con correo `super@gestorsalon.com` y rol `SUPERADMIN`.
 
-- **Correo:** `super@gestorsalon.com`
-- **Contraseña:** `SuperAdmin123!`
-- **Rol:** `SUPERADMIN`
+- **En una base local nueva**, la contraseña inicial es la que indica el comentario de `V6__seed_superadmin.sql`. Es pública: úsala solo en tu máquina.
+- **En la base compartida del equipo (Aiven) y en cualquier base que se exponga**, esa contraseña ya no funciona. Se cambió con un hash BCrypt nuevo y la nueva se comparte solo por el canal privado del equipo; nunca se escribe en el repositorio.
+
+Para cambiarla en otra base, genera un hash BCrypt de la contraseña nueva (por ejemplo con `BCryptPasswordEncoder` de Spring Security) y actualiza la fila:
+
+```sql
+UPDATE usuarios SET password_hash = '<hash BCrypt nuevo>'
+WHERE correo = 'super@gestorsalon.com' AND rol = 'SUPERADMIN';
+```
+
+No se edita `V6__seed_superadmin.sql`: cambiar una migración ya aplicada rompe la validación de Flyway en las bases existentes.
 
 ### Flujo inicial recomendado:
 
