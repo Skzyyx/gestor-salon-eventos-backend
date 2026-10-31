@@ -20,7 +20,9 @@
 
 - **Christopher Álvarez:** pending.
 
-- **Freddy Castro:** pending.
+- **Freddy Castro:** superadmin password changed on Aiven and removed from the README, and a
+  read-only database user for the monitor, in #24; Lambda plan with the image upload
+  contract, in #25.
 
 ## Mini Definition of Done
 
