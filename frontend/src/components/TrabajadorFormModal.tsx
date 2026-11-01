@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Modal from './Modal';
 import InputField from './InputField';
-import { Loader2 } from 'lucide-react';
+import { Loader2, UserCog } from 'lucide-react';
 import { Trabajador, CrearTrabajadorRequest, ActualizarTrabajadorRequest, RolNegocio } from '../types/equipo';
 
 interface TrabajadorFormModalProps {
@@ -77,7 +77,9 @@ export default function TrabajadorFormModal({
         <Modal
             isOpen={isOpen}
             onClose={() => !saving && onClose()}
+            icon={UserCog}
             title={isEditing ? 'Editar Trabajador' : 'Nuevo Trabajador'}
+            subtitle={isEditing ? 'Modifica el nombre o el rol del trabajador.' : 'Registra a un nuevo integrante de tu equipo.'}
         >
             <form onSubmit={handleSubmit} className="p-6">
                 <div className="space-y-4">
