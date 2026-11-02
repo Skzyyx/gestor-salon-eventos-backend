@@ -323,11 +323,11 @@ Con la aplicación en ejecución, puedes consultar y probar interactivamente los
 
 Por defecto, la API tiene configurado el intercambio de recursos de origen cruzado (CORS) para comunicarse con clientes frontend modernos desarrollados en Vite / React:
 
-- Origen permitido: `http://localhost:5173`
-- Métodos: `GET`, `POST`, `PUT`, `DELETE`, `OPTIONS`
+- Orígenes permitidos: los de la variable `APP_CORS_ALLOWED_ORIGINS`, separados por coma. Sin la variable, `http://localhost:5173`
+- Métodos: `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `OPTIONS`
 - Credenciales: Habilitadas (`AllowCredentials: true`)
 
-Para agregar otros orígenes (por ejemplo, el dominio de producción del frontend), modifica la clase `SecurityConfig.java`.
+Para agregar otros orígenes (por ejemplo, el dominio de producción del frontend), define `APP_CORS_ALLOWED_ORIGINS` (ver `.env.example`); no hace falta tocar el código. Nunca uses `*`: con credenciales habilitadas, Spring lo rechaza.
 
 ---
 
