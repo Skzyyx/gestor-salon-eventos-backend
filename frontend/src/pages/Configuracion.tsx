@@ -124,7 +124,7 @@ export default function Configuracion() {
                 } catch (err) {
                     const msg = axios.isAxiosError(err) ? err.response?.data?.message : undefined;
                     setMessage({
-                        text: msg || 'Error al subir la imagen. Verifica que sea una imagen válida menor a 5MB.',
+                        text: msg || 'Error al subir la imagen. Verifica que sea una imagen válida de hasta 4 MB.',
                         type: 'error'
                     });
                     setSaving(false);
