@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { UploadCloud, Image as ImageIcon, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { MAX_IMAGE_BYTES } from '../api/images.api';
 
 export interface ImageUploadZoneProps {
     currentImageUrl?: string;
@@ -14,6 +15,7 @@ export interface ImageUploadZoneProps {
 export default function ImageUploadZone({ currentImageUrl, onFileSelect, onClear, label = 'Imagen del Servicio', minHeightClass = 'min-h-[250px]', grow = true }: ImageUploadZoneProps) {
     const [isDragging, setIsDragging] = useState(false);
     const [previewUrl, setPreviewUrl] = useState(currentImageUrl || null);
+    const [sizeError, setSizeError] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -47,6 +49,13 @@ export default function ImageUploadZone({ currentImageUrl, onFileSelect, onClear
     };
 
     const handleFileSelection = (file: File) => {
+        // Se rechaza aquí, antes de subir nada: el backend y la Lambda tampoco aceptan más de 4 MB
+        if (file.size > MAX_IMAGE_BYTES) {
+            setSizeError('La imagen pesa más de 4 MB. Elige una más ligera.');
+            if (fileInputRef.current) fileInputRef.current.value = '';
+            return;
+        }
+        setSizeError('');
         // Crear una URL local para la previsualización
         const objectUrl = URL.createObjectURL(file);
         setPreviewUrl(objectUrl);
@@ -126,11 +135,14 @@ export default function ImageUploadZone({ currentImageUrl, onFileSelect, onClear
                             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                 <span className="text-brand-600 dark:text-brand-400">Haz clic para subir</span> o arrastra y suelta
                             </span>
-                            <span className="text-xs text-gray-400 dark:text-gray-500 mt-1">PNG, JPG, WEBP (Max. 5MB)</span>
+                            <span className="text-xs text-gray-400 dark:text-gray-500 mt-1">PNG, JPG, WEBP (Max. 4MB)</span>
                         </motion.div>
                     )}
                 </AnimatePresence>
             </div>
+            {sizeError && (
+                <p role="alert" className="text-xs text-red-600 dark:text-red-400 ml-1">{sizeError}</p>
+            )}
         </div>
     );
 }

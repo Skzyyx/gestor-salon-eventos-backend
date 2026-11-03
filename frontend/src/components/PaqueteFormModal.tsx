@@ -115,7 +115,7 @@ export default function PaqueteFormModal({ isOpen, onClose, paqueteToEdit, servi
                 finalImageUrl = uploadRes.url;
             } catch (err) {
                 const msg = axios.isAxiosError(err) ? err.response?.data?.message : undefined;
-                setLocalError(msg || 'Error al subir la imagen. Verifica que sea válida y menor a 5MB.');
+                setLocalError(msg || 'Error al subir la imagen. Verifica que sea válida y de hasta 4 MB.');
                 setSaving(false);
                 return;
             }

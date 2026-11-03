@@ -67,7 +67,7 @@ export default function ServicioFormModal({ isOpen, onClose, servicioToEdit, cat
                 finalImageUrl = uploadRes.url;
             } catch (err) {
                 const msg = axios.isAxiosError(err) ? err.response?.data?.message : undefined;
-                setLocalError(msg || 'Error al subir la imagen. Verifica que sea una imagen válida menor a 5MB.');
+                setLocalError(msg || 'Error al subir la imagen. Verifica que sea una imagen válida de hasta 4 MB.');
                 setSaving(false);
                 return; // Abortar guardado
             }
