@@ -30,6 +30,7 @@ pnpm build
 | Name | Default | Purpose |
 | :--- | :--- | :--- |
 | `VITE_API_URL` | `http://localhost:8080/api/v1` | Base URL of the backend API |
+| `VITE_UPLOAD_URL` | empty | Where images go. Empty: the backend (`/images/upload`). With the image Lambda's Function URL: the Lambda |
 
 Everything that starts with `VITE_` ends up in the JavaScript the browser downloads: never
 put a secret in these variables.

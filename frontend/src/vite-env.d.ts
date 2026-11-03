@@ -6,4 +6,5 @@
 // descarga el navegador: nunca pongas un secreto aquí.
 interface ImportMetaEnv {
     readonly VITE_API_URL?: string;
+    readonly VITE_UPLOAD_URL?: string;
 }
