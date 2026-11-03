@@ -16,7 +16,9 @@
   `frontend/` with ADR-0004, in #[22]; AWS account prepared (budget, read-only IAM group,
   quotas checked) with no resources created.
 
-- **José Eduardo Aguilar:** pending.
+- **José Eduardo Aguilar:** frontend workflow (lint, typecheck, build) with pnpm pinned and the
+  worker modal's type error fixed, in #26; uploads to a configurable destination
+  (`VITE_UPLOAD_URL`) with a 4 MB check in the browser, in #28.
 
 - **Christopher Álvarez:** `ImageValidator`, the upload validation without Spring that the image
   Lambda will reuse, with the 4 MB limit and the 413 answer, in #23; CORS origins from
