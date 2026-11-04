@@ -14,7 +14,8 @@
 
 - **José Luis Islas:** pending.
 
-- **José Eduardo Aguilar:** pending.
+- **José Eduardo Aguilar:** the deploy workflow (`lambda-imagenes.yml`: the image built on pull
+  requests; ECR, update and smoke tests from `main`), in #30.
 
 - **Christopher Álvarez:** the first phase of the image function (`lambdas/imagenes/`): a
   handler over an identical copy of `ImageValidator`, 12 tests and its container image on the

@@ -59,3 +59,26 @@ PNG=iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9
 curl -s "http://localhost:9000/2015-03-31/functions/function/invocations" \
   -d "{\"isBase64Encoded\":true,\"body\":\"$PNG\"}"
 ```
+
+## Deployment
+
+[`.github/workflows/lambda-imagenes.yml`](../../.github/workflows/lambda-imagenes.yml) runs
+when this folder, the backend's `ImageValidator` or the workflow change.
+
+- **Pull request** (`Build imagenes`): checks that both copies of `ImageValidator` are
+  identical and builds the image; the tests run inside the build.
+- **Push to `main`** (`Deploy imagenes`, in the `aws` environment): the same check, then it
+  signs in to AWS, builds the image with `APP_VERSION` set to the short commit SHA, pushes it
+  to ECR with that tag, points the function at it and waits. The smoke test sends a 1x1 PNG
+  directly and through the Function URL (`image/png`, 70 bytes and this commit's version),
+  and a text body that must answer 400. If the function does not exist (only the very first
+  time), the run pushes the image, leaves a warning and stops.
+
+| | |
+| :--- | :--- |
+| Region | `us-east-2` |
+| ECR repository | `gestor-salon-imagenes`: keeps the last 3 images, scans every push |
+| Function | `gestor-salon-imagenes`: x86_64, 512 MB, 10 s timeout, public Function URL |
+| Execution role | `gestor-salon-imagenes-exec`: CloudWatch Logs only; logs kept 14 days |
+| Deploy credentials | IAM user `gha-deploy-gestor-salon`, keys in the `aws` environment ([ADR-0005](../../docs/adr/0005-deploy-credentials-without-oidc.md)) |
+| Environment variable | `IMAGENES_URL`: the Function URL, for the smoke test |

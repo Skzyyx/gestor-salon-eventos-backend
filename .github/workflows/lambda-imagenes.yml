@@ -1,0 +1,160 @@
+name: Lambda imagenes
+
+# The image function in lambdas/imagenes. A pull request that touches it builds its image,
+# which runs the tests; a push to main also publishes the image to ECR, points the function
+# at it and checks that it answers. Separate from ci.yml: the required "Build" check stays
+# the backend's.
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'lambdas/imagenes/**'
+      - 'src/main/java/mx/gestorsalon/service/ImageValidator.java'
+      - '.github/workflows/lambda-imagenes.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'lambdas/imagenes/**'
+      - 'src/main/java/mx/gestorsalon/service/ImageValidator.java'
+      - '.github/workflows/lambda-imagenes.yml'
+  # "Run workflow" button in the Actions tab, for a deploy without a new commit.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: us-east-2 # the project's Region; the new AWS experience does not let it change
+  ECR_REPOSITORY: gestor-salon-imagenes
+  FUNCTION_NAME: gestor-salon-imagenes
+  VALIDATOR: src/main/java/mx/gestorsalon/service/ImageValidator.java
+  # A 1x1 PNG (70 bytes), the smallest real image, for the smoke tests.
+  PIXEL_PNG: iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==
+
+jobs:
+  build:
+    # Pull requests: the image is built, with the tests inside, and thrown away.
+    if: github.event_name == 'pull_request'
+    name: Build imagenes
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Same ImageValidator as the backend
+        run: cmp "$VALIDATOR" "lambdas/imagenes/$VALIDATOR"
+
+      - name: Build the image (runs the tests)
+        run: |
+          docker buildx build --platform linux/amd64 --provenance=false \
+            --load -t imagenes:ci lambdas/imagenes
+
+  deploy:
+    # main only. The "aws" environment holds the AWS keys and only lets main read them.
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    name: Deploy imagenes
+    runs-on: ubuntu-latest
+    environment: aws
+    # Two merges close together deploy one after the other, never at the same time.
+    concurrency:
+      group: deploy-imagenes
+      cancel-in-progress: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Same ImageValidator as the backend
+        run: cmp "$VALIDATOR" "lambdas/imagenes/$VALIDATOR"
+
+      # Access keys instead of OIDC: the project's AWS account cannot create identity
+      # providers (ADR-0005). The IAM user can only do what this job does.
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Log in to Amazon ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # Tag and version are the short SHA of the commit, so the function can say which
+      # commit it is running. If a test fails, docker build fails and nothing is pushed.
+      - name: Build and push the image
+        id: image
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+        run: |
+          VERSION="${GITHUB_SHA::7}"
+          IMAGE="$REGISTRY/$ECR_REPOSITORY:$VERSION"
+          docker buildx build --platform linux/amd64 --provenance=false \
+            --build-arg APP_VERSION="$VERSION" --load -t "$IMAGE" lambdas/imagenes
+          docker push "$IMAGE"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
+
+      # The first run has no function to update yet: it is created once, by hand, from the
+      # image this run pushed, and the run is started again. Any other error fails the job.
+      - name: Check that the function exists
+        id: function
+        env:
+          IMAGE: ${{ steps.image.outputs.image }}
+        run: |
+          if salida=$(aws lambda get-function --function-name "$FUNCTION_NAME" 2>&1 >/dev/null); then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          elif grep -q ResourceNotFoundException <<< "$salida"; then
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "::warning title=The function does not exist yet::Create $FUNCTION_NAME from $IMAGE and re-run this job."
+          else
+            echo "$salida"
+            exit 1
+          fi
+
+      - name: Deploy the new image
+        if: steps.function.outputs.exists == 'true'
+        env:
+          IMAGE: ${{ steps.image.outputs.image }}
+        run: |
+          aws lambda update-function-code --function-name "$FUNCTION_NAME" --image-uri "$IMAGE" \
+            --query "[FunctionName,LastUpdateStatus]" --output text
+          aws lambda wait function-updated --function-name "$FUNCTION_NAME"
+
+      # The 1x1 PNG must come back as image/png, 70 bytes and this commit's version. A text
+      # body must answer 400, not crash.
+      - name: Smoke test
+        if: steps.function.outputs.exists == 'true'
+        env:
+          VERSION: ${{ steps.image.outputs.version }}
+        run: |
+          jq -nc --arg body "$PIXEL_PNG" '{isBase64Encoded: true, body: $body}' > png.json
+          aws lambda invoke --function-name "$FUNCTION_NAME" --cli-binary-format raw-in-base64-out \
+            --payload file://png.json respuesta.json
+          cat respuesta.json
+          echo
+          jq -e --arg version "$VERSION" '.tipo == "image/png" and .bytes == 70 and .version == $version' respuesta.json
+
+          aws lambda invoke --function-name "$FUNCTION_NAME" --cli-binary-format raw-in-base64-out \
+            --payload '{"body":"hola"}' error.json
+          cat error.json
+          echo
+          jq -e '.statusCode == 400' error.json
+
+      # The public way in, as the frontend will use it: the PNG's bytes as the body.
+      # IMAGENES_URL is a variable of the "aws" environment, added once the function has its URL.
+      - name: Smoke test through the Function URL
+        if: steps.function.outputs.exists == 'true' && vars.IMAGENES_URL != ''
+        env:
+          URL: ${{ vars.IMAGENES_URL }}
+          VERSION: ${{ steps.image.outputs.version }}
+        run: |
+          echo "$PIXEL_PNG" | base64 -d > pixel.png
+          status=$(curl -sS -o url.json -w "%{http_code}" -X POST -H "Content-Type: image/png" \
+            --data-binary @pixel.png "$URL")
+          echo "HTTP $status"
+          cat url.json
+          echo
+          [ "$status" = 200 ]
+          jq -e --arg version "$VERSION" '.tipo == "image/png" and .version == $version' url.json
