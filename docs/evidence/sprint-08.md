@@ -18,7 +18,7 @@
 
 - **Christopher Álvarez:** the first phase of the image function (`lambdas/imagenes/`): a
   handler over an identical copy of `ImageValidator`, 12 tests and its container image on the
-  Java 17 Lambda base image, checked with the local emulator, in #[n].
+  Java 17 Lambda base image, checked with the local emulator, in #29.
 
 - **Freddy Castro:** pending.
 
