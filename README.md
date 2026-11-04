@@ -435,6 +435,23 @@ environment variables listed in `.env.example`. Images are published to the
 HTTP, so Docker must list it under `insecure-registries` (Docker Desktop → Settings →
 Docker Engine) before `docker login`.
 
+## ☁️ AWS Lambda
+
+AWS Lambda functions live in [`lambdas/`](lambdas/), each with its own `pom.xml`, and run in
+the team's AWS project in `us-east-2`. Which functions and why:
+[`docs/lambdas-plan.md`](docs/lambdas-plan.md).
+
+| Function | Code and contract | Pipeline |
+| :--- | :--- | :--- |
+| `gestor-salon-imagenes` | [`lambdas/imagenes/`](lambdas/imagenes/README.md) | [`lambda-imagenes.yml`](.github/workflows/lambda-imagenes.yml) |
+
+A pull request that touches a function builds its image, and the tests run inside the
+build. A push to `main` also pushes the image to Amazon ECR tagged with the short commit SHA,
+updates the function and smoke-tests it; the function answers that SHA as `version`.
+GitHub signs in to AWS with an IAM user's access keys, kept in the `aws` environment that
+only `main` can use, because the project's account cannot create the OIDC identity provider
+([ADR-0005](docs/adr/0005-deploy-credentials-without-oidc.md)).
+
 ## 🔁 Continuous integration and code quality
 
 Every push, on any branch, and every pull request targeting `main` runs the `CI` workflow
@@ -480,6 +497,8 @@ mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:5.8.0.7211:sonar 
 | `SONAR_HOST_URL` | GitHub → Settings → Secrets and variables → Actions | Base URL of the SonarQube server |
 | `SONAR_TOKEN` | Same place | Project analysis token generated in SonarQube |
 | `GITHUB_TOKEN` | Provided automatically by GitHub Actions | Read access to the repository during the job |
+| `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | GitHub → Settings → Environments → `aws` → secrets | Access key of the IAM user `gha-deploy-gestor-salon` ([ADR-0005](docs/adr/0005-deploy-credentials-without-oidc.md)) |
+| `IMAGENES_URL` | GitHub → Settings → Environments → `aws` → variables | Function URL of `gestor-salon-imagenes`, for the smoke test |
 
 ### SonarQube
 

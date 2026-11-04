@@ -8,18 +8,20 @@ Status: proposal; the professor's answers are at the end. Repository layout:
 The system already runs, or has a place to run, outside AWS: the Spring Boot backend, MySQL on
 Aiven and the images on Cloudinary stay as they are. AWS Lambda is used only where it adds
 something the server does not give, and the system keeps working without these functions.
-Nothing is created in AWS before the professor assigns the week 8 work.
+The week 7 practice (continuous delivery with GitHub Actions and Docker) already asks for
+one function: the image upload starts now with its first phase, below. The others are created
+in their own weeks.
 
 ## Summary
 
 | | Health monitor | Image upload | Orphan image cleanup |
 | :--- | :--- | :--- | :--- |
-| Course week | 8: Lambda without containers | 9: Lambda with container images | Optional, at the end |
+| Course week | 8: Lambda without containers | 7: validation, with the CD pipeline; 9: upload | Optional, at the end |
 | Package | ZIP, runtime `java17.al2023` | Image based on `public.ecr.aws/lambda/java:17.al2023`, stored in ECR | ZIP, `java17.al2023` |
 | Trigger | EventBridge Scheduler, every 30 minutes | Function URL, called by the frontend | EventBridge Scheduler, weekly |
 | Code | `lambdas/monitor-salud/` | `lambdas/imagenes/` | `lambdas/limpieza-imagenes/` |
-| Talks to | Aiven API, MySQL (read only) | Cloudinary | MySQL (read only), Cloudinary |
-| Secrets (SSM SecureString) | Aiven token, `monitor_lectura` password | JWT secret, Cloudinary credentials | `monitor_lectura` password, Cloudinary credentials |
+| Talks to | Aiven API, MySQL (read only) | Nothing in week 7; Cloudinary in week 9 | MySQL (read only), Cloudinary |
+| Secrets (SSM SecureString) | Aiven token, `monitor_lectura` password | None in week 7; JWT secret and Cloudinary credentials in week 9 | `monitor_lectura` password, Cloudinary credentials |
 
 Each function has its own `pom.xml`; none is a module of the backend's `pom.xml`. All of them
 run outside a VPC and reach Aiven, the Aiven API and Cloudinary over the internet with TLS, so
@@ -55,7 +57,21 @@ to hours. A service that stays powered off for more than 180 days is deleted.
 The Aiven token is a personal token with an expiry date; its renewal goes on the team's
 calendar. A 401 or 403 from the API fails the run, so the alarm also catches an expired token.
 
-## Image upload (week 9)
+## Image upload (weeks 7 and 9)
+
+One function, `gestor-salon-imagenes`, built in two phases:
+
+- **Week 7, validation** (deployed). The container image, ECR, the Function URL and the CD
+  pipeline of the week 7 practice (`.github/workflows/lambda-imagenes.yml`), with an
+  identical copy of `ImageValidator`; the pipeline fails if the two files differ. It answers
+  200 with the detected type and the size instead of a URL, and the same 400 and 413 as the
+  contract below. No token and no Cloudinary yet, so it needs no secrets. Code and its
+  contract: `lambdas/imagenes/`. Its execution role, `gestor-salon-imagenes-exec`, only
+  writes CloudWatch Logs, instead of role manager's broad role; logs are kept 14 days. GitHub
+  deploys with an IAM user's access keys, because the account cannot use OIDC
+  ([ADR-0005](adr/0005-deploy-credentials-without-oidc.md)).
+- **Week 9, upload**: the token check, the upload to Cloudinary, CORS and the frontend's
+  `VITE_UPLOAD_URL`, as described below. The 200 becomes `{ "url": ... }`.
 
 Why Lambda: it takes user-uploaded files out of the server. An untrusted file is parsed in an
 isolated environment that is thrown away, the server stops holding images in memory, and the
@@ -140,6 +156,10 @@ deleting. It fits with Terraform (week 11) and CloudWatch (week 15).
   upgraded to the paid plan.
 - Aiven can still power the database off; the monitor powers it back on, but the restore takes
   minutes to hours.
+- Until week 9 the image function has no token check: anyone with its URL can ask it to check
+  an image. It stores nothing, takes at most 4 MB, and a low reserved concurrency limits abuse.
+- The deploy key does not expire. It only deploys this project's functions, only `main` can
+  read it, and its rotation is in [ADR-0005](adr/0005-deploy-credentials-without-oidc.md).
 
 ## Professor's answers
 
