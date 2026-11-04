@@ -1,0 +1,61 @@
+# Lambda: imágenes
+
+First phase of the image upload function in
+[`docs/lambdas-plan.md`](../../docs/lambdas-plan.md), packaged as a container image. It
+receives an image through its Function URL and checks it with the backend's rule: not empty,
+at most 4 MB and only JPEG, PNG or WEBP, by its content. The token check and the upload to
+Cloudinary come in week 9, in this same function.
+
+The rule is `ImageValidator`, an identical copy of the backend's
+`src/main/java/mx/gestorsalon/service/ImageValidator.java`. To change it, change the
+backend's class and its tests first, then copy the file here: the pipeline fails if the two
+files differ.
+
+## Contract
+
+`POST <function URL>` with the image bytes as the body (no multipart) and its type in
+`Content-Type`, for example `image/png`. The type is checked by the content, not by the
+header or the file name.
+
+| Status | Body | When |
+| :--- | :--- | :--- |
+| 200 | `{"tipo":"image/png","bytes":70,"version":"a7c91e2"}` | A JPEG, PNG or WEBP of up to 4 MB |
+| 400 | `{"message":"El archivo está vacío","version":"a7c91e2"}` | No body |
+| 400 | `{"message":"Solo se permiten imágenes JPEG, PNG o WEBP. Tipo detectado: application/pdf","version":"a7c91e2"}` | Anything else, by its content |
+| 413 | `{"message":"La imagen pesa más de 4 MB","version":"a7c91e2"}` | More than 4 MB |
+
+The messages are the backend's. `version` is the short SHA of the commit the image was
+built from (`local` for a local build). `GET <function URL>` answers how to use it, with the
+version. In week 9 the 200 becomes `{ "url": ... }` and a missing or invalid token answers
+401, as the plan says.
+
+A direct invocation (`aws lambda invoke`, the console's Test tab) uses the shape a Function
+URL sends: `{"isBase64Encoded": true, "body": "<the image in base64>"}`. There an answer
+other than 200 comes as `{"statusCode": ..., "headers": ..., "body": "..."}`, the shape a
+Function URL turns into an HTTP response.
+
+## Run it locally
+
+Tests, with Java 17 and Maven like the backend:
+
+```bash
+cd lambdas/imagenes
+mvn -B test
+cd ../..
+```
+
+The image, with Docker Desktop running. The Lambda base image brings an emulator, so the
+container answers like the real function:
+
+```bash
+docker build -t imagenes:local lambdas/imagenes
+docker run --rm -p 9000:8080 imagenes:local
+```
+
+In another terminal, with a 1x1 PNG:
+
+```bash
+PNG=iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==
+curl -s "http://localhost:9000/2015-03-31/functions/function/invocations" \
+  -d "{\"isBase64Encoded\":true,\"body\":\"$PNG\"}"
+```
