@@ -22,7 +22,7 @@ import java.util.Map;
 public class ImagenesHandler implements RequestHandler<Map<String, Object>, Map<String, Object>> {
 
     static final String USO = "Envía con POST una imagen JPEG, PNG o WEBP de hasta 4 MB como cuerpo";
-        static final String NO_ES_BASE64 = "El cuerpo debía llegar en base64 y no se pudo leer";
+    static final String NO_ES_BASE64 = "El cuerpo debía llegar en base64 y no se pudo leer";
     static final String METODO_NO_PERMITIDO =
             "Método no permitido. Usa POST para revisar una imagen o GET para ver la versión";
     static final String JSON = "application/json; charset=utf-8";
@@ -48,7 +48,7 @@ public class ImagenesHandler implements RequestHandler<Map<String, Object>, Map<
             return uso;
         }
 
-                if (!"POST".equals(metodo(evento))) {
+        if (!"POST".equals(metodo(evento))) {
             Map<String, Object> noPermitido = error(405, METODO_NO_PERMITIDO);
             noPermitido.put("headers", Map.of("content-type", JSON, "allow", "GET, POST"));
             return noPermitido;
