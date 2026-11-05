@@ -23,6 +23,7 @@ header or the file name.
 | 400 | `{"message":"El archivo está vacío","version":"a7c91e2"}` | No body |
 | 400 | `{"message":"Solo se permiten imágenes JPEG, PNG o WEBP. Tipo detectado: application/pdf","version":"a7c91e2"}` | Anything else, by its content |
 | 413 | `{"message":"La imagen pesa más de 4 MB","version":"a7c91e2"}` | More than 4 MB |
+| 405 | `{"message":"Método no permitido. Usa POST para revisar una imagen o GET para ver la versión","version":"a7c91e2"}` | Any method other than GET or POST; the answer brings `allow: GET, POST` |
 
 The messages are the backend's. `version` is the short SHA of the commit the image was
 built from (`local` for a local build). `GET <function URL>` answers how to use it, with the

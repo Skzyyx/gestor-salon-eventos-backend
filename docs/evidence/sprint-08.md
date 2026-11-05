@@ -21,7 +21,11 @@
   handler over an identical copy of `ImageValidator`, 12 tests and its container image on the
   Java 17 Lambda base image, checked with the local emulator, in #29.
 
-- **Freddy Castro:** pending.
+- **Freddy Castro:** OIDC tried and blocked by the AWS-managed SCP; IAM user
+  `gha-deploy-gestor-salon` with the minimum deploy permissions, checked with the policy
+  simulator; ADR-0005, the image function in the Lambda plan and the README section, in #31;
+  405 for methods other than GET and POST, test first, deployed by the pipeline with no
+  manual step, in #32.
 
 ## Mini Definition of Done
 
