@@ -141,6 +141,16 @@ class ImagenesHandlerTest {
     }
 
     @Test
+    @DisplayName("Un método que no es GET ni POST responde 405 y dice cuáles sí")
+    void metodoNoPermitido() {
+        Map<String, Object> r = handler.handleRequest(peticion("DELETE", null), null);
+
+        assertEquals(405, r.get("statusCode"));
+        assertEquals(Map.of("content-type", ImagenesHandler.JSON, "allow", "GET, POST"), r.get("headers"));
+        assertTrue(cuerpo(r).contains("Usa POST"), () -> cuerpo(r));
+    }
+
+    @Test
     @DisplayName("json escapa comillas, diagonales invertidas y caracteres de control")
     void json() {
         assertEquals("\"a\\\"b\\\\c\\u000a\"", ImagenesHandler.json("a\"b\\c\n"));
