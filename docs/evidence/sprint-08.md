@@ -36,7 +36,7 @@ keys in a `main`-only environment. Trade-off: a key that does not expire
 
 - **José Luis Islas:** ECR repository with its 3-image rule, the `aws` environment with the
   deploy key, the function created from the first image with its own execution role and its
-  Function URL, and this evidence, in #[n].
+  Function URL, and this evidence, in #33.
 
 - **José Eduardo Aguilar:** the deploy workflow (`lambda-imagenes.yml`: the image built on pull
   requests; ECR, update and smoke tests from `main`), in #30.
